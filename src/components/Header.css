@@ -1,0 +1,60 @@
+.background {
+  position:fixed; top:0; width:100vw; height:10vh;
+  opacity:0.6; background:white;
+  z-index: 100;
+}
+
+.foreground {
+  position:fixed; top:0; width:100vw; height:10vh;
+  backdrop-filter:blur(10px);
+  z-index: 100;
+}
+
+.header {
+}
+
+.header-group {
+  display: flex; flex-direction:row; justify-content: space-between; align-items: center;
+  padding-left: 15vw; padding-right: 15vw;
+}
+
+.header-logo {
+  width: 20vw;
+}
+
+.group-menu {
+  display: flex; flex-direction:row; justify-content: space-between; align-items: center;
+  gap:1vw; font-size: 1vw;
+}
+
+.text-color-change-sign {
+  font-weight: bold;
+  background-image: linear-gradient(90deg, #678ee9 0%, #678ee9 50%, #2748b0 50%, #2748b0 100%);
+  background-size: 200% 100%;
+  background-position: -100% 0;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  transition: background-position 1s ease;
+  position: relative;
+}
+
+.text-color-change-sign::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 1.5px;
+  background-color: #2748b0;
+  bottom: -5px;
+  left: 0;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.7s ease;
+}
+
+.text-color-change-sign:hover {
+  background-position: 100% 0;
+}
+
+.text-color-change-sign:hover::after {
+  transform: scaleX(1);
+}
