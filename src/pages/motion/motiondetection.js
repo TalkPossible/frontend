@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from 'react';
 import { Pose, POSE_CONNECTIONS } from '@mediapipe/pose';
 import { Camera } from '@mediapipe/camera_utils';
@@ -66,3 +67,4 @@ const PoseDetection = () => {
 };
 
 export default PoseDetection;
+
