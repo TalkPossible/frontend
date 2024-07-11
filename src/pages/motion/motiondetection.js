@@ -1,70 +1,127 @@
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { PoseLandmarker, FilesetResolver, DrawingUtils } from 'https://cdn.skypack.dev/@mediapipe/tasks-vision@0.10.0';
 
-import React, { useEffect, useRef } from 'react';
-import { Pose, POSE_CONNECTIONS } from '@mediapipe/pose';
-import { Camera } from '@mediapipe/camera_utils';
-import { drawConnectors, drawLandmarks } from '@mediapipe/drawing_utils';
-
-const PoseDetection = () => {
+const MotionDetection = () => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
-  const poseRef = useRef(null);
+  const [poseLandmarker, setPoseLandmarker] = useState(null);
+  const videoHeight = 450;
+  const videoWidth = 600;
 
-  useEffect(() => {
-    const pose = new Pose({
-      locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`,
-    });
-
-    pose.setOptions({
-      modelComplexity: 1,
-      smoothLandmarks: true,
-      enableSegmentation: false,
-      smoothSegmentation: false,
-      minDetectionConfidence: 0.5,
-      minTrackingConfidence: 0.5,
-    });
-
-    pose.onResults(onResults);
-    poseRef.current = pose;
-
-    if (typeof videoRef.current !== 'undefined' && videoRef.current !== null) {
-      const camera = new Camera(videoRef.current, {
-        onFrame: async () => {
-          await poseRef.current.send({ image: videoRef.current });
-        },
-        width: 640,
-        height: 480,
-      });
-      camera.start();
-    }
+  const lerp = useCallback((value, start, end, startValue, endValue) => {
+    return startValue + (endValue - startValue) * ((value - start) / (end - start));
   }, []);
 
-  const onResults = (results) => {
-    if (!canvasRef.current) return;
+  const landmarkNames = [
+    "Nose", "Left Eye Inner", "Left Eye", "Left Eye Outer",
+    "Right Eye Inner", "Right Eye", "Right Eye Outer", "Left Ear",
+    "Right Ear", "Left Shoulder", "Right Shoulder", "Left Elbow",
+    "Right Elbow", "Left Wrist", "Right Wrist"
+  ];
 
-    const canvasCtx = canvasRef.current.getContext('2d');
-    canvasCtx.save();
-    canvasCtx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-    canvasCtx.drawImage(
-      results.image, 0, 0, canvasRef.current.width, canvasRef.current.height);
+  useEffect(() => {
+    const predictWebcam = async () => {
+      if (poseLandmarker && videoRef.current && canvasRef.current) {
+        const video = videoRef.current;
+        const canvasElement = canvasRef.current;
+        const canvasCtx = canvasElement.getContext('2d');
 
-    if (results.poseLandmarks) {
-      drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS, {
-        color: '#00FF00', lineWidth: 4
-      });
-      drawLandmarks(canvasCtx, results.poseLandmarks, {
-        color: '#FF0000', lineWidth: 2
-      });
+        if (!canvasCtx) {
+          console.error('2D context of canvas is null');
+          return;
+        }
+
+        const drawingUtils = new DrawingUtils(canvasCtx);
+
+        canvasElement.width = videoWidth;
+        canvasElement.height = videoHeight;
+        video.width = videoWidth;
+        video.height = videoHeight;
+
+        const detect = () => {
+          if (!poseLandmarker) return;
+
+          const startTimeMs = performance.now();
+          poseLandmarker.detectForVideo(video, startTimeMs, (result) => {
+            canvasCtx.save();
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+
+            if (result.landmarks && result.landmarks.length > 0) {
+              console.log('Landmarks detected:', result.landmarks.length);
+
+              for (const landmarks of result.landmarks) {
+                // 좌표값이 유효한 경우에만 콘솔에 출력
+                landmarks.forEach((landmark, index) => {
+                  if (landmark.x !== undefined && landmark.y !== undefined && index < 15) {
+                    console.log(`Landmark coordinates for ${landmarkNames[index]}:`, landmark.x, landmark.y);
+                  }
+                });
+
+                drawingUtils.drawLandmarks(landmarks, {
+                  radius: (data) => {
+                    const radius = lerp(data.from.z, -0.15, 0.1, 3, 0.5);
+                    return radius < 0 ? 0.5 : radius;
+                  },
+                });
+                drawingUtils.drawConnectors(landmarks, PoseLandmarker.POSE_CONNECTIONS);
+              }
+            } else {
+              console.log('No landmarks detected');
+            }
+
+            canvasCtx.restore();
+          });
+
+          window.requestAnimationFrame(detect);
+        };
+
+        detect();
+      } else {
+        console.log('PoseLandmarker or videoRef or canvasRef is not ready');
+      }
+    };
+
+    if (poseLandmarker && videoRef.current) {
+      const enableCam = async () => {
+        const constraints = { video: true };
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        videoRef.current.srcObject = stream;
+        videoRef.current.onloadeddata = () => {
+          videoRef.current.play();
+          predictWebcam();
+        };
+      };
+
+      enableCam();
     }
-    canvasCtx.restore();
-  };
+  }, [poseLandmarker, lerp]);
+
+  useEffect(() => {
+    const createPoseLandmarker = async () => {
+      const vision = await FilesetResolver.forVisionTasks(
+        'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm'
+      );
+      const poseLandmarker = await PoseLandmarker.createFromOptions(vision, {
+        baseOptions: {
+          modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task',
+          delegate: 'GPU',
+        },
+        runningMode: 'VIDEO',
+        numPoses: 1,
+      });
+      setPoseLandmarker(poseLandmarker);
+      console.log('PoseLandmarker created');
+    };
+
+    createPoseLandmarker();
+  }, []);
 
   return (
     <div>
-      <video ref={videoRef} style={{ display: 'none' }}></video>
-      <canvas ref={canvasRef} width="640" height="480"></canvas>
+      <video ref={videoRef} style={{ display: 'block', position: 'absolute' }} autoPlay></video>
+      <canvas ref={canvasRef} style={{ display: 'block', position: 'absolute' }}></canvas>
     </div>
   );
 };
 
-export default PoseDetection;
-
+export default MotionDetection;
