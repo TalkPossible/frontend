@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { PoseLandmarker, FilesetResolver, DrawingUtils } from 'https://cdn.skypack.dev/@mediapipe/tasks-vision@0.10.0';
 import { m } from 'framer-motion';
+import AWS from 'aws-sdk';
 
 const MotionDetection = () => {
   const videoRef = useRef(null);
@@ -34,6 +35,57 @@ const MotionDetection = () => {
     // "Left Heel", "Right Heel",
     // "Left Foot Index", "Right Foot Index"
   ];
+
+  // S3에 이미지 파일 업로드
+  const uploadToS3 = (imgFile) => {
+    const REGION = process.env.REACT_APP_MOTION_S3_REGION;
+    const ACCESS_KEY = process.env.REACT_APP_MOTION_S3_ACCESS_KEY;
+    const SECRET_KEY = process.env.REACT_APP_MOTION_S3_SECRET_KEY;
+
+    // AWS S3 설정
+    AWS.config.update({
+      region: REGION,
+      accessKeyId: ACCESS_KEY,
+      secretAccessKey: SECRET_KEY,
+    });
+
+    const s3 = new AWS.S3();
+
+    // 업로드할 파일 정보 설정
+    const uploadParams = {
+      Bucket: process.env.REACT_APP_MOTION_S3_BUCKET_NAME,
+      Key: `motion/${imgFile.name}`,
+      Body: imgFile,
+      ContentType: imgFile.type
+    };
+
+    return new Promise((resolve, reject) => {
+      s3.upload(uploadParams, (error, data) => {
+        if (error) {
+          console.error('[동작 인식] 이미지 업로드 실패:', error);
+          reject(error);
+        } else {
+          console.log('[동작 인식] 이미지 업로드 완료!');
+          resolve(data.Location); // 이미지 URL 반환
+        }
+      });
+    });
+  };  
+
+  // 세션 스토리지에 동작 내역 저장
+  const saveToStorage = async (motionName, imgFile) => {
+    try {
+      // 이미지 업로드
+      const imgUrl = await uploadToS3(imgFile);
+
+      // 동작 내역 저장
+      const motions = JSON.parse(sessionStorage.getItem('motions')) || [];
+      motions.push({ motionName, imgUrl, timestamp: new Date().toISOString() });
+      sessionStorage.setItem('motions', JSON.stringify(motions));
+    } catch (error) {
+      console.error('[동작 인식] 이미지 업로드 중 오류 발생:', error);
+    }
+  };
 
   // 머리 만지기 동작 인식: 손목이 어깨 위에 있는지 판단
   const checkWristAboveShoulder = (landmarks) => {
@@ -77,6 +129,20 @@ const MotionDetection = () => {
         const distance = calculateDistance(handPoint, headPoint);
         if (distance < 1) {
           console.log('머리 만지는 동작이 감지되었습니다.');
+          const nowTime = Date.now();
+          const actionName = '머리 만지기';
+          
+          // 동작이 감지되면 이미지 캡처, 세션 스토리지에 저장
+          const canvas = document.createElement('canvas');
+          const video = videoRef.current;
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          canvas.toBlob(async(blob) => {
+            const file = new File([blob], `${actionName}-${nowTime}.png`, { type: 'image/png' });
+            await saveToStorage(actionName, file);
+          }, 'image/png');
         }
       }
     }
