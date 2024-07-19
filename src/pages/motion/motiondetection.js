@@ -148,6 +148,49 @@ const MotionDetection = () => {
     }
   };
 
+  // 동작 감지 내역 백엔드로 전송
+  const postMotionData = async () => {
+
+    // 세션 스토리지에서 동작 감지 내역 가져오기
+    const motions = JSON.parse(sessionStorage.getItem('motions')) || [];
+
+    // motionList 생성
+    const motionList = motions.length > 0 ? motions.map(motion => ({
+      actionName: motion.actionName,
+      imgUrl: motion.imgUrl,
+      timestamp: motion.timestamp,
+    })) : null;
+  
+    try {
+      // 백엔드 API 엔드포인트
+      const endpoint = '...';
+  
+      const body = JSON.stringify({ motionList });
+      console.log("body: ", body);
+  
+      // POST 요청 전송
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: body,
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to send motion data');
+      }
+  
+      console.log('Motion data sent successfully!');
+  
+      // 성공적으로 전송 후 세션 스토리지 비우기
+      sessionStorage.removeItem('motions');
+    } catch (error) {
+      console.error('Error sending motion data:', error);
+    }
+    
+  };
+
   useEffect(() => {
     const predictWebcam = async () => {
       if (poseLandmarker && videoRef.current && canvasRef.current) {
