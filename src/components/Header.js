@@ -7,6 +7,10 @@ const Header = () => {
   const navigate = useNavigate();
   
   const logoClick = () => {navigate('/');};
+  const handleLoginClick = () => {
+    navigate('/login');
+  };
+
 
   return (
     <div className="header">
@@ -17,7 +21,7 @@ const Header = () => {
         </div>
         <div className="group-menu">
           <div className="text-color-change-sign">회원가입</div>
-          <div className="text-color-change-sign">로그인</div>
+          <div className="text-color-change-sign" onClick={handleLoginClick}>로그인</div>
         </div>
       </div>
     </div>
