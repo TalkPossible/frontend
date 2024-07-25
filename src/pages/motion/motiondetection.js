@@ -10,16 +10,17 @@ const MotionDetection = () => {
   const videoHeight = 450;
   const videoWidth = 600;
 
+  const startTime = useRef(null);
+  const actionStartTime = useRef(null);
+
+  // 최근 거리값을 저장할 버퍼
+  const wristAboveShoulderBuffer = useRef([]);
+  const distanceBuffer = useRef([]);
+
   const lerp = useCallback((value, start, end, startValue, endValue) => {
     return startValue + (endValue - startValue) * ((value - start) / (end - start));
   }, []);
 
-  // const landmarkNames = [
-  //   "Nose", "Left Eye Inner", "Left Eye", "Left Eye Outer",
-  //   "Right Eye Inner", "Right Eye", "Right Eye Outer", "Left Ear",
-  //   "Right Ear", "Left Shoulder", "Right Shoulder", "Left Elbow",
-  //   "Right Elbow", "Left Wrist", "Right Wrist"
-  // ];
   const landmarkNames = [
     "Nose", 
     "Left Eye Inner", "Left Eye", "Left Eye Outer",
@@ -29,14 +30,47 @@ const MotionDetection = () => {
     "Left Shoulder", "Right Shoulder", "Left Elbow", "Right Elbow", 
     "Left Wrist", "Right Wrist",
     "Left Pinky", "Right Pinky", "Left Index", "Right Index", "Left Thumb", "Right Thumb",
-    // "Left Hip", "Right Hip",
-    // "Left Knee", "Right Knee",
-    // "Left Ankle", "Right Ankle",
-    // "Left Heel", "Right Heel",
-    // "Left Foot Index", "Right Foot Index"
   ];
 
-  // S3에 이미지 파일 업로드
+  // 녹화 시작 시간 설정
+  const startRecording = () => {
+    const currentTime = Date.now();
+    startTime.current = currentTime;
+    console.log('녹화 시작 시간 설정됨:', new Date(currentTime).toISOString());
+  };
+
+  // 거리 계산
+  const calculateDistance = (landmark1, landmark2) => {
+    return Math.sqrt(
+      Math.pow(landmark1.x - landmark2.x, 2) +
+      Math.pow(landmark1.y - landmark2.y, 2) +
+      Math.pow(landmark1.z - landmark2.z, 2)
+    );
+  };
+
+  // 동작 지속 시간 계산
+  const calculateActionTime = () => {
+    if (actionStartTime.current) {
+      return (Date.now() - actionStartTime.current) / 1000;
+    }
+    return 0;
+  };
+
+  // 동작 timestamp 계산(초 단위)
+  const calculateElapsedTime = () => {
+    if (startTime.current) {
+      return (Date.now() - startTime.current) / 1000;
+    }
+    return 0;
+  };
+
+  const formatElapsedTime = (totalSeconds) => {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = Math.floor(totalSeconds % 60);
+    return minutes + ':' + seconds;
+  };
+
+  // AWS S3에 이미지 파일 업로드
   const uploadToS3 = (imgFile) => {
     const REGION = process.env.REACT_APP_MOTION_S3_REGION;
     const ACCESS_KEY = process.env.REACT_APP_MOTION_S3_ACCESS_KEY;
@@ -72,15 +106,15 @@ const MotionDetection = () => {
     });
   };  
 
-  // 세션 스토리지에 동작 내역 저장
-  const saveToStorage = async (motionName, imgFile) => {
+  // 세션 스토리지에 감지된 동작 내역 저장
+  const saveToStorage = async (motionName, timestamp) => {
     try {
       // 이미지 업로드
-      const imgUrl = await uploadToS3(imgFile);
+      // const imgUrl = await uploadToS3(imgFile);
 
       // 동작 내역 저장
       const motions = JSON.parse(sessionStorage.getItem('motions')) || [];
-      motions.push({ motionName, imgUrl, timestamp: new Date().toISOString() });
+      motions.push({ motionName, timestamp });
       sessionStorage.setItem('motions', JSON.stringify(motions));
     } catch (error) {
       console.error('[동작 인식] 이미지 업로드 중 오류 발생:', error);
@@ -94,23 +128,44 @@ const MotionDetection = () => {
     const leftWrist = landmarks.find(l => l.name === "Left Wrist");
     const rightWrist = landmarks.find(l => l.name === "Right Wrist");
 
-    const isLeftWristAboveLeftShoulder = leftShoulder && leftWrist && leftWrist.y < leftShoulder.y;
-    const isRightWristAboveLeftShoulder = leftShoulder && rightWrist && rightWrist.y < leftShoulder.y;
-    const isLeftWristAboveRightShoulder = rightShoulder && leftWrist && leftWrist.y < rightShoulder.y;
-    const isRightWristAboveRightShoulder = rightShoulder && rightWrist && rightWrist.y < rightShoulder.y;
+    const leftWristAboveLeftShoulder = leftShoulder && leftWrist && leftWrist.y < leftShoulder.y;
+    const rightWristAboveRightShoulder = leftShoulder && rightWrist && rightWrist.y < leftShoulder.y;
+    const leftWristAboveRightShoulder = rightShoulder && leftWrist && leftWrist.y < rightShoulder.y;
+    const rightWristAboveLeftShoulder = rightShoulder && rightWrist && rightWrist.y < rightShoulder.y;
 
-    if (isLeftWristAboveLeftShoulder || isRightWristAboveLeftShoulder || isLeftWristAboveRightShoulder || isRightWristAboveRightShoulder) {
-      console.log('손이 어깨 위로 올라갔습니다');
+    const isWristAboveShoulder = leftWristAboveLeftShoulder || rightWristAboveRightShoulder || leftWristAboveRightShoulder || rightWristAboveLeftShoulder;
+  
+    wristAboveShoulderBuffer.current.push(isWristAboveShoulder ? 1 : 0);
+
+    if (wristAboveShoulderBuffer.current.length > 5) {
+      wristAboveShoulderBuffer.current.shift(); // 최근 5개의 값만 유지
     }
-  }
 
-  // 거리 계산
-  const calculateDistance = (landmark1, landmark2) => {
-    return Math.sqrt(
-      Math.pow(landmark1.x - landmark2.x, 2) +
-      Math.pow(landmark1.y - landmark2.y, 2) +
-      Math.pow(landmark1.z - landmark2.z, 2)
-    );
+    const averageBufferedStatus = wristAboveShoulderBuffer.current.reduce((a, b) => a + b, 0) / wristAboveShoulderBuffer.current.length;
+    //console.log('averageBufferedStatus:', averageBufferedStatus);
+
+    if (averageBufferedStatus > 0.5) {
+      if (!actionStartTime.current) {
+        actionStartTime.current = Date.now();
+        console.log('손목이 어깨 위에 있는 동작이 처음 감지됨! actionStartTime:', actionStartTime.current);
+      } else {
+        const actionTime = calculateActionTime();
+        console.log('손목이 어깨 위에 있는 동작이 연속적으로 감지됨! actionTime:', actionTime);
+  
+        if (actionTime >= 3) { // 동작이 3초 이상 지속되는지 확인
+          console.log('손목이 어깨 위에 있는 동작이 3초 이상 지속됨! actionTime: ', actionTime);
+          const formattedTime = formatElapsedTime(calculateElapsedTime());
+          const actionName = '머리 만지기';
+  
+          // 동작 감지 내역 세션 스토리지에 저장
+          saveToStorage(actionName, formattedTime);
+          actionStartTime.current = null;
+        }
+      }
+    } else {
+      console.log('손목이 어깨 위에 있는 동작이 감지되지 않음');
+      actionStartTime.current = null;
+    }
   };
 
   // 머리 만지기 동작 인식: 얼굴과 손목 간 거리로 판단
@@ -124,27 +179,61 @@ const MotionDetection = () => {
     const headPoints = headLandmarks.map(name => landmarks.find(l => l.name === name)).filter(Boolean);
     const handPoints = handLandmarks.map(name => landmarks.find(l => l.name === name)).filter(Boolean);
 
+    let totalDistance = 0;
+    let count = 0;
+
     for (const handPoint of handPoints) {
       for (const headPoint of headPoints) {
         const distance = calculateDistance(handPoint, headPoint);
-        if (distance < 1) {
-          console.log('머리 만지는 동작이 감지되었습니다.');
-          const nowTime = Date.now();
-          const actionName = '머리 만지기';
+        totalDistance += distance;
+        count += 1;
+      }
+    }
+
+    const averageDistance = totalDistance / count;
+    distanceBuffer.current.push(averageDistance);
+
+    if (distanceBuffer.current.length > 5) {
+      distanceBuffer.current.shift(); // 최근 5개의 거리값만 유지
+    }
+
+    const averageBufferedDistance = distanceBuffer.current.reduce((a, b) => a + b, 0) / distanceBuffer.current.length;
+    //console.log('averageBufferedDistance:', averageBufferedDistance);
+
+    if (averageBufferedDistance < 1.2) {
+      if (!actionStartTime.current) {
+        actionStartTime.current = Date.now();
+        console.log('동작이 처음 감지됨! actionStartTime:', actionStartTime.current);
+      } else {
+        const actionTime = calculateActionTime();
+        console.log('동작이 연속적으로 감지됨! actionTime:', actionTime);
           
-          // 동작이 감지되면 이미지 캡처, 세션 스토리지에 저장
-          const canvas = document.createElement('canvas');
-          const video = videoRef.current;
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-          canvas.toBlob(async(blob) => {
-            const file = new File([blob], `${actionName}-${nowTime}.png`, { type: 'image/png' });
-            await saveToStorage(actionName, file);
-          }, 'image/png');
+        if (actionTime >= 3) { // 동작이 3초 이상 지속되는지 확인
+          console.log('머리 만지는 동작이 3초 이상 지속됨! actionTime: ' + actionTime + '초 ing');
+          const formattedTime = formatElapsedTime(calculateElapsedTime());
+          const actionName = '머리 만지기';
+
+          // 동작이 감지되면 이미지 캡처
+          // const canvas = document.createElement('canvas');
+          // const video = videoRef.current;
+          // canvas.width = video.videoWidth;
+          // canvas.height = video.videoHeight;
+          // const ctx = canvas.getContext('2d');
+          // ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          // canvas.toBlob(async (blob) => {
+          //   const file = new File([blob], `${actionName}-${formattedTime}.png`, { type: 'image/png' });
+          //   await saveToStorage(actionName, file, formattedTime);
+          // }, 'image/png');
+          
+          // 동작 감지 내역 세션 스토리지에 저장
+          saveToStorage(actionName, formattedTime);
+          actionStartTime.current = null;
         }
       }
+    } 
+    else {
+      console.log('머리 만지는 동작이 감지되지 않음');
+      actionStartTime.current = null;
     }
   };
 
@@ -162,13 +251,11 @@ const MotionDetection = () => {
     })) : null;
   
     try {
-      // 백엔드 API 엔드포인트
-      const endpoint = '...';
+      const endpoint = '...'; // endpoint 추가 필요
   
       const body = JSON.stringify({ motionList });
       console.log("body: ", body);
   
-      // POST 요청 전송
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
@@ -219,7 +306,6 @@ const MotionDetection = () => {
             canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
 
             if (result.landmarks && result.landmarks.length > 0) {
-              //console.log('Landmarks detected:', result.landmarks.length);
 
               // landmarks 배열의 값들을 landmarkNames와 매핑
               const landmarks = result.landmarks[0].map((landmark, index) => ({
@@ -227,18 +313,9 @@ const MotionDetection = () => {
                 name: landmarkNames[index]
               }));
 
-              // 매핑된 landmarks를 사용하여 어깨, 손목의 좌표값을 콘솔에 출력
-              // const keyLandmarks = ['Left Shoulder', 'Right Shoulder', 'Left Wrist', 'Right Wrist'];
-              // keyLandmarks.forEach((key) => {
-              //   const landmark = landmarks.find(l => l.name === key);
-              //   if (landmark && landmark.x !== undefined && landmark.y !== undefined) {
-              //     console.log(`Landmark coordinates for ${key}:`, landmark.x, landmark.y);
-              //   }
-              // });
-
-              // 동작 인식
-              //checkWristAboveShoulder(landmarks);
-              checkTouchingHead(landmarks);
+              // 머리 만지는 동작 인식
+              //checkTouchingHead(landmarks);
+              checkWristAboveShoulder(landmarks);
 
               drawingUtils.drawLandmarks(landmarks, {
                 radius: (data) => {
@@ -247,24 +324,6 @@ const MotionDetection = () => {
                 },
               });
               drawingUtils.drawConnectors(landmarks, PoseLandmarker.POSE_CONNECTIONS);
-
-              // for (const landmarks of result.landmarks) {
-
-              //  좌표값이 유효한 경우에만 콘솔에 출력
-              //  landmarks.forEach((landmark, index) => {
-              //    if (landmark.x !== undefined && landmark.y !== undefined && index < 15) {
-              //      console.log(`Landmark coordinates for ${landmarkNames[index]}:`, landmark.x, landmark.y);
-              //    }
-              //  });
-
-              //   drawingUtils.drawLandmarks(landmarks, {
-              //     radius: (data) => {
-              //       const radius = lerp(data.from.z, -0.15, 0.1, 3, 0.5);
-              //       return radius < 0 ? 0.5 : radius;
-              //     },
-              //   });
-              //   drawingUtils.drawConnectors(landmarks, PoseLandmarker.POSE_CONNECTIONS);
-              // }
             } else {
               console.log('No landmarks detected');
             }
@@ -288,6 +347,7 @@ const MotionDetection = () => {
         videoRef.current.srcObject = stream;
         videoRef.current.onloadeddata = () => {
           videoRef.current.play();
+          startRecording(); // 녹화 시작 시간 설정
           predictWebcam();
         };
       };
@@ -317,9 +377,9 @@ const MotionDetection = () => {
   }, []);
 
   return (
-    <div>
-      <video ref={videoRef} style={{ display: 'block', position: 'absolute' }} autoPlay></video>
-      <canvas ref={canvasRef} style={{ display: 'block', position: 'absolute' }}></canvas>
+    <div style={{ position: 'relative' }}>
+      <video ref={videoRef} style={{ display: 'block', position: 'absolute', zIndex: 0 }} autoPlay></video>
+      <canvas ref={canvasRef} style={{ display: 'block', position: 'absolute', zIndex: 1 }}></canvas>
     </div>
   );
 };
