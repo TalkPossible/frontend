@@ -24,3 +24,6 @@ yarn-error.log*
 
 # API_KEY
 .API_KEY.js
+
+# AWS S3_KEY
+.env
