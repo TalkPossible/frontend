@@ -1,0 +1,86 @@
+/* src/pages/patientlist/PatientListPage.css */
+
+.patient-list-container {
+  padding: 20px;
+  margin: 20px auto;
+  width: calc(100% - 1cm); /* 화면 좌우로 5mm씩 띄우기 */
+  max-height: calc(100vh - 120px); /* 최대 높이를 설정하여 헤더와 겹치지 않도록 조정 */
+  margin-top: 10vh; /* 헤더와 겹치지 않도록 상단 마진 추가 */
+  position: relative;
+}
+
+.patient-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 10vh; /* 헤더 바로 아래에 고정되도록 설정 */
+  background-color: white;
+  z-index: 101; /* 헤더보다 위에 표시되도록 설정 */
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.patient-list-title {
+  font-size: 2rem; /* 글자 크기 줄이기 */
+  text-align: left; /* 왼쪽 정렬 */
+}
+
+.patient-list-table-container {
+  overflow-y: auto;
+  max-height: calc(100vh - 160px); /* 제목과 버튼 아래의 가용 공간 계산 */
+}
+
+.patient-list-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.patient-list-table th,
+.patient-list-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center; /* 텍스트 가운데 정렬 */
+}
+
+.patient-list-table th {
+  background-color: #f4f4f4;
+  font-weight: bold;
+}
+
+.patient-list-table tr {
+  background-color: #ffffff; /* 모든 행의 배경색을 흰색으로 설정 */
+  cursor: pointer;
+}
+
+.patient-list-table tr:hover {
+  background-color: #f1f1f1;
+}
+
+.patient-list-table tr.selected {
+  background-color: #cdeafe; /* 선택된 행의 배경색 설정 */
+}
+
+.button-container {
+  display: flex;
+  gap: 10px;
+}
+
+.action-button {
+  padding: 10px 20px;
+  font-size: 1rem;
+  background-color: #ffd401; /* 버튼 배경색 변경 */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.action-button:hover {
+  background-color: #e0b700; /* 버튼 호버 배경색 */
+}
+
+/* 로그인과 회원가입 숨기기 */
+.header .group-menu {
+  display: none;
+}
