@@ -1,0 +1,253 @@
+.talkpossile-content {
+  margin-top: 10vh; margin-bottom: 10vh;
+  display: flex; flex-direction:column; justify-content: center;
+}
+
+/* first-part-content */
+.first-part-content {
+  display: flex; flex-direction:column; justify-content: center;
+}
+
+.text-title-container {
+  display: flex; flex-direction:column; justify-content: center; align-items: center; text-align: center;
+}
+
+.text-title-main {
+  display: inline-block;
+  color: rgb(1, 13, 59);
+  font-size: 3vw; font-weight: bold; font-family: Arial, sans-serif;
+}
+
+.talkpossible-container {
+  position: relative;
+  display: flex; flex-direction:column; justify-content: center; align-items: center;
+}
+
+.start-group {
+  position:absolute; top: 0;
+  display: flex; flex-direction:column; justify-content: center; align-items: center;
+  margin-top: 6.5%;
+}
+
+.btn-start {
+  padding:0.5vw 1vh;
+  background-color: #2748b0; color: white;
+  border-radius: 1vw; border: none;
+  font-size: 2vw; font-weight: bold; font-family: Arial, sans-serif;
+  cursor: pointer;
+  transition: all 0.5s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.btn-start:hover {
+  transform: scale(1.05);
+  background-color: #ffd401; color: #fffbe9;
+  box-shadow: 0 0 1em #fefbf0;
+}
+
+.talkpossible-group-pic {
+}
+
+.theme-item {
+  display: flex; flex-direction:column; justify-content: center; align-items: center;
+  gap: 1vw; width: 3vw;
+  font-size: 1vw;
+}
+
+.theme-icon {
+  width: 4vw; 
+}
+
+/* talkpossible-background */
+.talkpossible-background {
+  display: flex; flex-direction:column; justify-content: center;
+}
+
+.background-intro {
+  height: 250vh;
+  display: flex; flex-direction:column; justify-content: center;
+}
+
+.intro-description {
+  display: flex; flex-direction:column; justify-content: center; align-items: center; gap:90vh;
+  font-size: 3vw; font-weight: bold; font-family: Arial, sans-serif;
+}
+
+.intro-description > div {
+  opacity: 0;
+  transition: opacity 1.2s ease;
+}
+
+.intro-description > div.visible {
+  opacity: 1;
+}
+
+.cases-group {
+  display: flex; flex-direction: column; justify-content: center;
+}
+
+.case {
+  margin-top: 7vh;
+  display: flex; flex-direction: row; justify-content: center;
+}
+
+.case-pic {
+  width: 35vw;
+}
+
+.case-description-right {
+  padding-left: 5vw;
+  display: flex; flex-direction:column; justify-content: center; gap: 2vh;
+  font-size: 3vw; font-weight: bold; font-family: Arial, sans-serif;
+}
+
+.case-description-left {
+  padding-right: 5vw;
+  display: flex; flex-direction:column; justify-content: center; gap: 2vh;
+  font-size: 3vw; font-weight: bold; font-family: Arial, sans-serif;
+}
+
+#case1-2 {
+  margin-left: 5vw;
+}
+
+.background-outro {
+  display: flex; flex-direction:column; justify-content: center;
+}
+
+.outro-group-problem{
+  margin-top: 55vh;
+  position: relative;
+  display: flex; flex-direction:column; justify-content: center; align-items: center;
+}
+
+.problem-description {
+  margin-top: 15%;
+  position: absolute; top: 0;
+  display: flex; flex-direction:column; justify-content: center; align-items: center; text-align: center;
+}
+
+.problem-imgs {
+  position: relative;
+}
+
+.fit-size-100vw {
+  width: 100vw;
+}
+
+#problem-img-eye {
+  position: absolute; top: 0vh;
+  opacity: 0;
+  transition: opacity 3s ease;
+}
+
+#problem-img-eye.visible {
+  opacity: 1;
+}
+
+.outro-group-solution {
+  position: relative;
+  display: flex; flex-direction:column; justify-content: center; align-items: center;
+
+}
+
+.solution-description {
+  margin-top: 30%; margin-bottom: 20%;
+  display: flex; flex-direction:column; justify-content: center; align-items: center; text-align: center;
+}
+
+.text-now {
+  display: inline-block;
+  color: rgb(1, 13, 59);
+  font-size: 3vw; font-weight: bold; font-family: Arial, sans-serif;
+}
+
+.solution-group-img {
+  margin-top: 20%; margin-bottom: 20%;
+  position:relative;
+  display: flex; flex-direction:column; justify-content: center; align-items: center; text-align: center;
+}
+
+.img-box {
+  position: absolute;
+  display: flex; justify-content: center; align-items: center;
+}
+
+.img-box-portrait {
+  width: 20vw; height: 40vw;
+}
+
+#portrait-left {
+  bottom: 0; left: -20vw;
+}
+
+#portrait-right {
+  top: 0; right: -20vw;
+}
+
+.img-box-landscape {
+  width: 40vw; height: 20vw;
+}
+
+#landscape-top {
+  top: -20vw; left: 0vw;
+}
+
+#landscape-bottom {
+  bottom: -20vw; right: 0vw;
+}
+
+.img-box-center {
+  position: relative;
+  width: 20vw; height: 20vw;
+}
+
+.img-overflow {
+  overflow: hidden;
+}
+
+.img-shadow {
+  position: absolute; top: -20vw;
+  width: 100vw; height: 60vw;
+  background-color: #000; opacity: 0.5; filter:blur(5px);
+}
+
+.img-text {
+  width: 100vw;
+  position:absolute; top: 7.5vw;
+  color: rgb(255, 255, 255);
+  font-size: 3vw; font-weight: bold; font-family: Arial, sans-serif;
+}
+
+.talkpossible-function {
+  display: flex; flex-direction:column; justify-content: center; align-items: center; text-align: center;
+}
+
+.theme-list {
+  margin-top: 20%;
+}
+
+.theme-group-img {
+  /* padding: 1vw 2vh; */
+  display: flex; flex-direction:row; justify-content: space-between; align-items: center;
+  gap: 3vw;
+  /* border: 0.1vw solid #2747b03d; border-radius: 1vw; */
+}
+
+.feedback-service {
+  margin-top: 20%;
+}
+
+.service-effect {
+  margin-top: 20%;
+}
+
+/* text-default */
+.text-default-title {
+  display: flex; flex-direction:column; justify-content: center; gap: 2vh;
+  font-size: 3vw; font-weight: bold; font-family: Arial, sans-serif;
+}
+.text-default-sub {
+  display: flex; flex-direction:column; justify-content: center; gap: 2vh;
+  font-size: 1vw; font-weight: lighter; font-family: Arial, sans-serif;
+}
