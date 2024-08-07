@@ -21,10 +21,12 @@ const MotionDetection = () => {
   });
 
   // 최근 거리값을 저장할 버퍼
-  const wristAboveShoulderBuffer = useRef([]);
-  const distanceBuffer = useRef([]);
-  const touchingNeckBuffer = useRef([]);
-  const touchingFaceBuffer = useRef([]);
+  const buffers = useRef({
+    wristAboveShoulderBuffer: [],
+    touchingHeadBuffer: [],
+    touchingNeckBuffer: [],
+    touchingFaceBuffer: []
+  });
 
   const lerp = useCallback((value, start, end, startValue, endValue) => {
     return startValue + (endValue - startValue) * ((value - start) / (end - start));
@@ -59,69 +61,31 @@ const MotionDetection = () => {
 
   // 동작 지속 시간 계산
   const calculateActionTime = (startTime) => {
-    if (startTime) {
-      return (Date.now() - startTime) / 1000;
-    }
-    return 0;
+    return startTime ? (Date.now() - startTime) / 1000 : 0;
   };
 
   // 동작 timestamp 계산(초 단위)
   const calculateElapsedTime = () => {
-    if (startTime.current) {
-      return (Date.now() - startTime.current) / 1000;
-    }
-    return 0;
+    return startTime.current ? (Date.now() - startTime.current) / 1000 : 0;
   };
 
+  // 동작 timestamp '분:초' 형식으로 변환
   const formatElapsedTime = (totalSeconds) => {
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = Math.floor(totalSeconds % 60);
     return minutes + ':' + seconds;
   };
 
-  // // AWS S3에 이미지 파일 업로드
-  // const uploadToS3 = (imgFile) => {
-  //   const REGION = process.env.REACT_APP_MOTION_S3_REGION;
-  //   const ACCESS_KEY = process.env.REACT_APP_MOTION_S3_ACCESS_KEY;
-  //   const SECRET_KEY = process.env.REACT_APP_MOTION_S3_SECRET_KEY;
-
-  //   // AWS S3 설정
-  //   AWS.config.update({
-  //     region: REGION,
-  //     accessKeyId: ACCESS_KEY,
-  //     secretAccessKey: SECRET_KEY,
-  //   });
-
-  //   const s3 = new AWS.S3();
-
-  //   // 업로드할 파일 정보 설정
-  //   const uploadParams = {
-  //     Bucket: process.env.REACT_APP_MOTION_S3_BUCKET_NAME,
-  //     Key: `motion/${imgFile.name}`,
-  //     Body: imgFile,
-  //     ContentType: imgFile.type
-  //   };
-
-  //   return new Promise((resolve, reject) => {
-  //     s3.upload(uploadParams, (error, data) => {
-  //       if (error) {
-  //         console.error('[동작 인식] 이미지 업로드 실패:', error);
-  //         reject(error);
-  //       } else {
-  //         console.log('[동작 인식] 이미지 업로드 완료!');
-  //         resolve(data.Location); // 이미지 URL 반환
-  //       }
-  //     });
-  //   });
-  // };  
+  const actionTypeToName = {
+    wristAboveShoulder: "머리 만지기",
+    touchingHead: "머리 만지기",
+    touchingNeck: "목 만지기",
+    touchingFace: "얼굴 만지기"
+  };
 
   // 세션 스토리지에 감지된 동작 내역 저장
   const saveToStorage = async (motionName, timestamp) => {
     try {
-      // 이미지 업로드
-      // const imgUrl = await uploadToS3(imgFile);
-
-      // 동작 내역 저장
       const motions = JSON.parse(sessionStorage.getItem('motions')) || [];
       motions.push({ motionName, timestamp });
       sessionStorage.setItem('motions', JSON.stringify(motions));
@@ -130,51 +94,62 @@ const MotionDetection = () => {
     }
   };
 
-  // 머리 만지기 동작 인식: 손목이 어깨 위에 있는지 판단
-  const checkWristAboveShoulder = (landmarks) => {
-    const leftShoulder = landmarks.find(l => l.name === "Left Shoulder");
-    const rightShoulder = landmarks.find(l => l.name === "Right Shoulder");
-    const leftWrist = landmarks.find(l => l.name === "Left Wrist");
-    const rightWrist = landmarks.find(l => l.name === "Right Wrist");
-
-    const leftWristAboveLeftShoulder = leftShoulder && leftWrist && leftWrist.y < leftShoulder.y;
-    const rightWristAboveRightShoulder = leftShoulder && rightWrist && rightWrist.y < leftShoulder.y;
-    const leftWristAboveRightShoulder = rightShoulder && leftWrist && leftWrist.y < rightShoulder.y;
-    const rightWristAboveLeftShoulder = rightShoulder && rightWrist && rightWrist.y < rightShoulder.y;
-
-    const isWristAboveShoulder = leftWristAboveLeftShoulder || rightWristAboveRightShoulder || leftWristAboveRightShoulder || rightWristAboveLeftShoulder;
-  
-    wristAboveShoulderBuffer.current.push(isWristAboveShoulder ? 1 : 0);
-
-    if (wristAboveShoulderBuffer.current.length > 5) {
-      wristAboveShoulderBuffer.current.shift(); // 최근 5개의 값만 유지
+  // 동작 버퍼 업데이트
+  const updateBuffer = (buffer, value) => {
+    if (!buffer) {
+      throw new Error("Buffer is undefined");
     }
+    buffer.push(value ? 1 : 0);
+    if (buffer.length > 5) {
+      buffer.shift(); // 최근 5개의 값만 유지
+    }
+    return buffer.reduce((a, b) => a + b, 0) / buffer.length;
+  };
 
-    const averageBufferedStatus = wristAboveShoulderBuffer.current.reduce((a, b) => a + b, 0) / wristAboveShoulderBuffer.current.length;
-    //console.log('averageBufferedStatus:', averageBufferedStatus);
-
-    if (averageBufferedStatus > 0.5) {
-      if (!actionStartTimes.current.wristAboveShoulder) {
-        actionStartTimes.current.wristAboveShoulder = Date.now();
-        //console.log('손목이 어깨 위에 있는 동작이 처음 감지됨! actionStartTime:', actionStartTimes.current.wristAboveShoulder);
+  // 동작 판단 로직 (공통)
+  // -> 특정 동작이 3초이상 감지되면 세션 스토리지에 동작 감지 내역 저장
+  const detectAction = (buffer, actionType, isActionDetected, threshold = 0.5, duration = 3) => {
+    const averageBufferedStatus = updateBuffer(buffer, isActionDetected);
+  
+    if (averageBufferedStatus > threshold) {
+      if (!actionStartTimes.current[actionType]) {
+        actionStartTimes.current[actionType] = Date.now();
+        //console.log(`[${actionType}] 동작이 처음 감지됨! actionStartTime:`, actionStartTimes.current[actionType]);
       } else {
-        const actionTime = calculateActionTime(actionStartTimes.current.wristAboveShoulder);
-        //console.log('손목이 어깨 위에 있는 동작이 연속적으로 감지됨! actionTime:', actionTime);
+        const actionTime = calculateActionTime(actionStartTimes.current[actionType]);
+        //console.log(`[${actionType}] 동작이 연속적으로 감지됨! actionTime:`, actionTime);
   
-        if (actionTime >= 3) { // 동작이 3초 이상 지속되는지 확인
-          console.log('손목이 어깨 위에 있는 동작이 3초 이상 지속됨! actionTime: ', actionTime);
+        if (actionTime >= duration) {
+          console.log(`[${actionType}] 동작이 ${duration}초 이상 지속됨! actionTime:`, actionTime);
           const formattedTime = formatElapsedTime(calculateElapsedTime());
-          const actionName = '머리 만지기';
-  
-          // 동작 감지 내역 세션 스토리지에 저장
-          saveToStorage(actionName, formattedTime);
-          actionStartTimes.current.wristAboveShoulder = null;
+          const motionName = actionTypeToName[actionType];
+          saveToStorage(motionName, formattedTime);
+          actionStartTimes.current[actionType] = null;
         }
       }
     } else {
-      //console.log('손목이 어깨 위에 있는 동작이 감지되지 않음');
-      actionStartTimes.current.wristAboveShoulder = null;
+      actionStartTimes.current[actionType] = null;
     }
+  };
+
+  // 머리 만지기 동작 인식: 손목이 어깨 위에 있는지 판단
+  const checkWristAboveShoulder = (landmarks) => {
+
+    const getLandmark = (name) => landmarks.find(l => l.name === name);
+
+    const leftShoulder = getLandmark("Left Shoulder");
+    const rightShoulder = getLandmark("Right Shoulder");
+    const leftWrist = getLandmark("Left Wrist");
+    const rightWrist = getLandmark("Right Wrist");
+
+    const isWristAboveShoulder = [
+      leftShoulder && leftWrist && leftWrist.y < leftShoulder.y,
+      leftShoulder && rightWrist && rightWrist.y < leftShoulder.y,
+      rightShoulder && leftWrist && leftWrist.y < rightShoulder.y,
+      rightShoulder && rightWrist && rightWrist.y < rightShoulder.y
+    ].some(condition => condition);
+
+    detectAction(buffers.current.wristAboveShoulderBuffer, 'wristAboveShoulder', isWristAboveShoulder);
   };
 
   // // 머리 만지기 동작 인식: 얼굴과 손목 간 거리로 판단
@@ -263,28 +238,22 @@ const MotionDetection = () => {
   // 목 만지기 동작 인식
   const checkTouchingNeck = (landmarks) => {
 
-    const leftShoulder = landmarks.find(l => l.name === "Left Shoulder");
-    const rightShoulder = landmarks.find(l => l.name === "Right Shoulder");
+    const getLandmark = (name) => landmarks.find(l => l.name === name);
 
-    const nose = landmarks.find(l => l.name === "Nose");
-    const mouthLeft = landmarks.find(l => l.name === "Mouth Left");
-    const mouthRight = landmarks.find(l => l.name === "Mouth Right");
+    const leftShoulder = getLandmark("Left Shoulder");
+    const rightShoulder = getLandmark("Right Shoulder");
+
+    const nose = getLandmark("Nose");
+    const mouthLeft = getLandmark("Mouth Left");
+    const mouthRight = getLandmark("Mouth Right");
     const mouth = {
       x: (mouthLeft.x + mouthRight.x) / 2,
       y: (mouthLeft.y + mouthRight.y) / 2,
       z: (mouthLeft.z + mouthRight.z) / 2
     };
-  
-    const leftWrist = landmarks.find(l => l.name === "Left Wrist");
-    const rightWrist = landmarks.find(l => l.name === "Right Wrist");
 
-    // const leftPinky = landmarks.find(l => l.name === "Left Pinky");
-    // const leftIndex = landmarks.find(l => l.name === "Left Index");
-    // const leftThumb = landmarks.find(l => l.name === "Left Thumb");
-
-    // const rightPinky = landmarks.find(l => l.name === "Right Pinky");
-    // const rightIndex = landmarks.find(l => l.name === "Right Index");
-    // const rightThumb = landmarks.find(l => l.name === "Right Thumb");
+    const leftWrist = getLandmark("Left Wrist");
+    const rightWrist = getLandmark("Right Wrist");
 
     // 목의 상하 경계 설정
     const neckBottomY = (leftShoulder.y + rightShoulder.y) / 2;
@@ -302,37 +271,8 @@ const MotionDetection = () => {
     );
 
     const isTouchingNeck = isWristInNeckRange(leftWrist) || isWristInNeckRange(rightWrist);
+    detectAction(buffers.current.touchingNeckBuffer, 'touchingNeck', isTouchingNeck);
 
-    touchingNeckBuffer.current.push(isTouchingNeck ? 1 : 0);
-
-    if (touchingNeckBuffer.current.length > 5) {
-      touchingNeckBuffer.current.shift(); // 최근 5개의 값만 유지
-    }
-
-    const averageBufferedStatus = touchingNeckBuffer.current.reduce((a, b) => a + b, 0) / touchingNeckBuffer.current.length;
-
-    if (averageBufferedStatus > 0.5) {
-      if (!actionStartTimes.current.touchingNeck) {
-        actionStartTimes.current.touchingNeck = Date.now();
-        //console.log('[목 만지기] 동작이 처음 감지됨! actionStartTime:', actionStartTimes.current.touchingNeck);
-      } else {
-        const actionTime = calculateActionTime(actionStartTimes.current.touchingNeck);
-        //console.log('[목 만지기] 동작이 연속적으로 감지됨! actionTime:', actionTime);
-  
-        if (actionTime >= 3) { // 동작이 3초 이상 지속되는지 확인
-          console.log('[목 만지기] 동작이 3초 이상 지속됨! actionTime:', actionTime);
-          const formattedTime = formatElapsedTime(calculateElapsedTime());
-          const actionName = '목 만지기';
-  
-          // 동작 감지 내역 세션 스토리지에 저장
-          saveToStorage(actionName, formattedTime);
-          actionStartTimes.current.touchingNeck = null;
-        }
-      }
-    } else {
-      //console.log('[목 만지기] 동작이 감지되지 않음');
-      actionStartTimes.current.touchingNeck = null;
-    }
     // // 손가락 랜드마크 배열
     // const leftFingers = [ leftPinky, leftIndex, leftThumb ];
     // const rightFingers = [ rightPinky, rightIndex, rightThumb ];
@@ -364,93 +304,34 @@ const MotionDetection = () => {
 
   // 얼굴 만지기 동작 인식
   const checkTouchingFace = (landmarks) => {
-    const leftPinky = landmarks.find(l => l.name === "Left Pinky");
-    const leftIndex = landmarks.find(l => l.name === "Left Index");
-    const leftThumb = landmarks.find(l => l.name === "Left Thumb");
 
-    const rightPinky = landmarks.find(l => l.name === "Right Pinky");
-    const rightIndex = landmarks.find(l => l.name === "Right Index");
-    const rightThumb = landmarks.find(l => l.name === "Right Thumb");
-
-    const nose = landmarks.find(l => l.name === "Nose");
-    const mouthLeft = landmarks.find(l => l.name === "Mouth Left");
-    const mouthRight = landmarks.find(l => l.name === "Mouth Right");
-
-    const leftEyeInner = landmarks.find(l => l.name === "Left Eye Inner");
-    const leftEye = landmarks.find(l => l.name === "Left Eye");
-    const leftEyeOuter = landmarks.find(l => l.name === "Left Eye Outer");
-    const rightEyeInner = landmarks.find(l => l.name === "Right Eye Inner");
-    const rightEye = landmarks.find(l => l.name === "Right Eye");
-    const rightEyeOuter = landmarks.find(l => l.name === "Right Eye Outer");
-
-    const leftEar = landmarks.find(l => l.name === "Left Ear");
-    const rightEar = landmarks.find(l => l.name === "Right Ear");
+    const getLandmark = (name) => landmarks.find(l => l.name === name);
 
     // 손가락 랜드마크 배열
-    const leftHandFingers = [ leftPinky, leftIndex, leftThumb ];
-    const rightHandFingers = [ rightPinky, rightIndex, rightThumb ];
+    const leftHandFingers = ["Left Pinky", "Left Index", "Left Thumb"].map(getLandmark);
+    const rightHandFingers = ["Right Pinky", "Right Index", "Right Thumb"].map(getLandmark);
 
     // 얼굴 랜드마크 배열
     const faceLandmarks = [
-      nose, 
-      leftEyeInner, leftEye, leftEyeOuter,
-      rightEyeInner, rightEye, rightEyeOuter, 
-      leftEar, rightEar,
-      mouthLeft, mouthRight
-    ];
+      "Nose", 
+      "Left Eye Inner", "Left Eye", "Left Eye Outer",
+      "Right Eye Inner", "Right Eye", "Right Eye Outer", 
+      "Left Ear", "Right Ear", 
+      "Mouth Left", "Mouth Right"
+    ].map(getLandmark);
 
     // 얼굴 <-> 손가락 거리 기준
     const FACE_TOUCH_THRESHOLD = 0.6
 
     // 얼굴 만지기 동작 감지
-    const isTouchingFace = (fingers, faceLandmarks) => {
-      for (const finger of fingers) {
-        for (const landmark of faceLandmarks) {
-          const distance = calculateDistance(finger, landmark);
-          if (distance < FACE_TOUCH_THRESHOLD) {
-            return true;
-          }
-        }
-      }
-      return false;
+    const isHandInFaceRange = (fingers) => {
+      return fingers.some(finger =>
+        faceLandmarks.some(landmark => calculateDistance(finger, landmark) < FACE_TOUCH_THRESHOLD)
+      );
     };
 
-    // 왼손, 오른손 각각에 대해 얼굴을 만지는지 확인
-    const isLeftHandTouchingFace = isTouchingFace(leftHandFingers, faceLandmarks);
-    const isRightHandTouchingFace = isTouchingFace(rightHandFingers, faceLandmarks);
-
-    const isFaceTouched = isLeftHandTouchingFace || isRightHandTouchingFace;
-
-    touchingFaceBuffer.current.push(isFaceTouched ? 1 : 0);
-
-    if (touchingFaceBuffer.current.length > 5) {
-      touchingFaceBuffer.current.shift(); // 최근 5개의 값만 유지
-    }
-
-    const averageBufferedStatus = touchingFaceBuffer.current.reduce((a, b) => a + b, 0) / touchingFaceBuffer.current.length;
-
-    if (averageBufferedStatus > 0.5) {
-      if (!actionStartTimes.current.touchingFace) {
-        actionStartTimes.current.touchingFace = Date.now();
-        //console.log('[얼굴 만지기 동작]이 처음 감지됨! actionStartTime:', actionStartTimes.current.touchingFace);
-      } else {
-        const actionTime = calculateActionTime(actionStartTimes.current.touchingFace);
-        //console.log('[얼굴 만지기 동작]이 연속적으로 감지됨! actionTime:', actionTime);
-  
-        if (actionTime >= 3) { // 동작이 3초 이상 지속되는지 확인
-          console.log('[얼굴 만지기] 동작이 3초 이상 지속됨! actionTime:', actionTime);
-          const formattedTime = formatElapsedTime(calculateElapsedTime());
-          const actionName = '얼굴 만지기';
-  
-          // 동작 감지 내역 세션 스토리지에 저장
-          saveToStorage(actionName, formattedTime);
-          actionStartTimes.current.touchingFace = null;
-        }
-      }
-    } else {
-      //console.log('[얼굴 만지기] 동작이 감지되지 않음');
-      actionStartTimes.current.touchingFace = null;
-    }
+    const isFaceTouching = isHandInFaceRange(leftHandFingers) || isHandInFaceRange(rightHandFingers);
+    detectAction(buffers.current.touchingFaceBuffer, 'touchingFace', isFaceTouching);
 
   };
 
@@ -530,7 +411,7 @@ const MotionDetection = () => {
                 name: landmarkNames[index]
               }));
 
-              // 머리 만지는 동작 인식
+              // 동작 인식
               //checkTouchingHead(landmarks);
               checkWristAboveShoulder(landmarks);
               checkTouchingNeck(landmarks);
