@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import LandingPage from "../pages/landing/LandingPage.js";
 import ThemePage from "../pages/theme/ThemePage.js";
 import LoginPage from '../pages/login/LoginPage.js';
+import TestPage from '../TestPage.js';
 
 
 const Routers = () => {
@@ -13,6 +14,7 @@ const Routers = () => {
         <Route path="/" element={<LandingPage />} />
         <Route path="/theme" element={<ThemePage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/test" element={<TestPage />} />
       </Routes>
     </BrowserRouter>
   );
