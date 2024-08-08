@@ -5,21 +5,21 @@
   margin: 0 15vw;
   margin-top: 10vh;
 }
-.card-container .modal-img {
+.modal-img {
   padding: 0 16px;
 }
-.card-container .modal-title {
+.modal-title {
   margin: 16px auto;
   text-align: center;
   font-size: 24px;
   font-weight: 600;
 }
-.card-container .modal-sinario {
+.modal-sinario {
   margin-left: 16px;
   font-size: 16px;
   font-weight: 700;
 }
-.card-container .modal-desc {
+.modal-desc {
   margin: auto 16px;
   font-size: 16px;
 }

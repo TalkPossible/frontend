@@ -12,7 +12,7 @@ const Modal = (props) => {
           <button className='close' onClick={close}>
             &times;
           </button>
-          <main>{props.children}</main>
+          <main className='content-box'>{props.children}</main>
           <button className='startBtn' >
             시작하기
           </button>

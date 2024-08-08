@@ -35,6 +35,10 @@
   color: #999;
   background-color: transparent;
 }
+.modal > section main.content-box {
+  max-height: 400px;
+  overflow: scroll;
+}
 .modal > section button.startBtn {
   position: absolute;
   left: 50%;
