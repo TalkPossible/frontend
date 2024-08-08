@@ -1,0 +1,25 @@
+.card-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin: 0 15vw;
+  margin-top: 10vh;
+}
+.modal-img {
+  padding: 0 16px;
+}
+.modal-title {
+  margin: 16px auto;
+  text-align: center;
+  font-size: 24px;
+  font-weight: 600;
+}
+.modal-sinario {
+  margin-left: 16px;
+  font-size: 16px;
+  font-weight: 700;
+}
+.modal-desc {
+  margin: auto 16px;
+  font-size: 16px;
+}
