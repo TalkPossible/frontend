@@ -78,6 +78,7 @@
 }
 .feedback .fd-menu .sub-menu .menu-box div {
   align-content: center;
+  width: 100%;
 }
 .feedback .fd-menu .sub-menu .menu-box div::before {
   content: "";
@@ -88,16 +89,19 @@
   top: 0; bottom: 0;
   margin: auto;
 }
+.feedback .fd-menu .sub-menu .menu-box div:nth-child(2n-1):before {
+  display: none;
+}
 .feedback .fd-menu .sub-menu .menu-box div::after {
   content: "";
-  width: 129.44px;
+  width: 100%;
   height: 1px;
   background-color: white;
   position:absolute;
   top: 0; bottom: 0;
   margin: auto;
 }
-.feedback .fd-menu .sub-menu .menu-box div:nth-child(2n-1):before {
+.feedback .fd-menu .sub-menu .menu-box div:nth-child(2n):after {
   display: none;
 }
 .feedback .fd-menu .sub-menu .menu-box div > p {
