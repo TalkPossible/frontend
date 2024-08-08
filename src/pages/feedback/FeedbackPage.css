@@ -1,0 +1,73 @@
+.feedback {
+  position: relative;
+  margin: 10vh 10vw 0vh 10vw;
+  height: 75vh;
+}
+.feedback .fd-main {
+  position:absolute;
+  top: 0; left: 0;
+  width: 50vw;
+  height: 75vh;
+  background-color: #b3b3b3;
+}
+.feedback .fd-main .fd-title {
+  font-weight: 400;
+  color: white;
+}
+.feedback .fd-main .fd-title p.ttl-name {
+  padding: 11px 16px;
+  font-weight: 700;
+  font-size: 2em;
+}
+.feedback .fd-main .fd-title .ttl-info {
+  position: relative;
+  display: flex;
+  font-size: 1em;
+  font-weight: 700;
+}
+.feedback .fd-main .fd-title .ttl-info p {
+}
+.feedback .fd-main .fd-title .ttl-info p::before {
+  content: "";
+  width: 1px;
+  height: 16px;
+  background-color: white;
+  position:absolute;
+  top: 0; bottom: 0;
+  margin: auto;
+}
+.feedback .fd-main .fd-title .ttl-info p:first-child:before {
+  display: none;
+}
+.feedback .fd-main .fd-title .ttl-info p span {
+  padding: 11px 16px;
+}
+.feedback .fd-main .fd-video {
+  width: 95%;
+  height: 60%;
+  margin: 20px auto;
+  border: 1px solid blue;
+}
+.feedback .fd-menu {
+  width: 30vw;
+  padding: 16px;
+  position: absolute;
+  top: 0; right: 0;
+  background-color: #dddddd;
+}
+.feedback .fd-menu .menu-header {
+  display: flex; justify-content: space-between;
+}
+.feedback .fd-menu .menu-header .header-title {
+}
+.feedback .fd-menu .menu-header .fd-confirmBtn {
+}
+.feedback .fd-menu .sub-menu {
+  display: grid;
+  grid-template-rows: repeat(2, 1fr);
+  grid-template-columns: repeat(2, 1fr);
+}
+.feedback .fd-menu .sub-menu div {
+}
+.feedback .fd-menu .sub-info {
+}

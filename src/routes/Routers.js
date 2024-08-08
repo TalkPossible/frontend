@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import LandingPage from "../pages/landing/LandingPage.js";
 import LoginPage from '../pages/login/LoginPage.js';
+import FeedbackPage from '../pages/feedback/FeedbackPage.js';
 
 
 const Routers = () => {
@@ -11,6 +12,7 @@ const Routers = () => {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/feedback" element={<FeedbackPage />} />
       </Routes>
     </BrowserRouter>
   );
