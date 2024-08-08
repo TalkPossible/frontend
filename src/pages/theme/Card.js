@@ -2,10 +2,10 @@ import React from "react";
 
 import "./Card.css";
 
-const Card = ({Data}) => {
+const Card = ({Data, openModal}) => {
 
   return(
-    <div className="card" >
+    <div className="card" onClick={openModal}>
       <img src={Data.img}  alt={Data.title} className="card-img" />
       <div className="card-info" >
         <div className="inner" >
