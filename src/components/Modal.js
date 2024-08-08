@@ -3,7 +3,7 @@ import React from 'react';
 import '../assets/css/Modal.css';
 
 const Modal = (props) => {
-  const { open, close, data } = props;
+  const { open, close } = props;
 
   return (
     <div className={open? 'openModal modal' : 'modal'}>

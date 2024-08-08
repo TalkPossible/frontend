@@ -2,10 +2,14 @@ import React from "react";
 
 import "./Card.css";
 
-const Card = ({Data, openModal}) => {
+const Card = ({Data, setModalOpen, setSelected, index}) => {
+  const onCardClick = () => {
+    setModalOpen(true);
+    setSelected(index);
+  }
 
   return(
-    <div className="card" onClick={openModal}>
+    <div className="card" onClick={onCardClick}>
       <img src={Data.img}  alt={Data.title} className="card-img" />
       <div className="card-info" >
         <div className="inner" >
