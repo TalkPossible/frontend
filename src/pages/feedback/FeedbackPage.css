@@ -1,13 +1,17 @@
 .feedback {
-  position: relative;
-  margin: 10vh 10vw 0vh 10vw;
-  height: 75vh;
+  display: flex;
+  margin: 0vh 10vw;
+  padding-top: 10vh;
+  height: 100vh;
 }
+.header-title {
+  font-weight: 700;
+}
+
+/* fd-main */
 .feedback .fd-main {
-  position:absolute;
-  top: 0; left: 0;
   width: 50vw;
-  height: 75vh;
+  height: 85vh;
   background-color: #b3b3b3;
 }
 .feedback .fd-main .fd-title {
@@ -48,26 +52,79 @@
   margin: 20px auto;
   border: 1px solid blue;
 }
+
+/* fd-menu */
 .feedback .fd-menu {
   width: 30vw;
+  height: 85vh;
   padding: 16px;
-  position: absolute;
-  top: 0; right: 0;
+  position:relative;
   background-color: #dddddd;
 }
-.feedback .fd-menu .menu-header {
-  display: flex; justify-content: space-between;
-}
-.feedback .fd-menu .menu-header .header-title {
-}
-.feedback .fd-menu .menu-header .fd-confirmBtn {
-}
+
+/* sub-menu */
 .feedback .fd-menu .sub-menu {
+}
+.feedback .fd-menu .sub-menu .header-title {
+}
+.feedback .fd-menu .sub-menu .menu-box {
+  position: relative;
   display: grid;
+  width: 100%;
+  height: 300px;
+  margin-top: 32px;
   grid-template-rows: repeat(2, 1fr);
   grid-template-columns: repeat(2, 1fr);
 }
-.feedback .fd-menu .sub-menu div {
+.feedback .fd-menu .sub-menu .menu-box div {
+  align-content: center;
 }
+.feedback .fd-menu .sub-menu .menu-box div::before {
+  content: "";
+  width: 1px;
+  height: auto;
+  background-color: white;
+  position:absolute;
+  top: 0; bottom: 0;
+  margin: auto;
+}
+.feedback .fd-menu .sub-menu .menu-box div::after {
+  content: "";
+  width: 129.44px;
+  height: 1px;
+  background-color: white;
+  position:absolute;
+  top: 0; bottom: 0;
+  margin: auto;
+}
+.feedback .fd-menu .sub-menu .menu-box div:nth-child(2n-1):before {
+  display: none;
+}
+.feedback .fd-menu .sub-menu .menu-box div > p {
+  height: auto;
+  text-align: center;
+}
+
+/* sub-info */
 .feedback .fd-menu .sub-info {
+  margin-top: 32px;
+}
+.feedback .fd-menu .sub-info .sub-container {
+  margin-top: 16px;
+}
+.feedback .fd-menu .sub-info .sub-container .sub-title {
+  font-size: 12px;
+  font-weight: 600;
+}
+.feedback .fd-menu .sub-info .sub-container .sub-value {
+}
+
+/* menu-footer */
+.feedback .fd-menu .menu-footer {
+  position:absolute;
+  bottom: 16px; right: 16px;
+
+}
+.feedback .fd-menu .menu-footer .fd-confirmBtn {
+  font-weight: 700;
 }

@@ -19,29 +19,37 @@ const FeedbackPage = () => {
               <p><span>2024년 6월 24일</span></p>
             </div>
           </div>
+
           <div className="fd-video">
             video
           </div>
         </div>
+
         <div className="fd-menu">
-          <div className="menu-header">
-            <p className="header-title">menu</p>
-            <button className="fd-confirmBtn">확인완료</button>
-          </div>
           <div className="sub-menu">
-            <div>대화 내용</div>
-            <div>음성 피드백</div>
-            <div>행동 피드백</div>
+            <p className="header-title">menu</p>
+            <div className="menu-box">
+              <div><p>대화 내용</p></div>
+              <div><p>음성 피드백</p></div>
+              <div><p>행동 피드백</p></div>
+              <div><p></p></div>
+            </div>
           </div>
+
           <div className="sub-info">
-            <div>
-              <p>전체 시간</p>
-              <p>3분 42초</p>
+            <p className="header-title">info</p>
+            <div className="sub-container">
+              <p className="sub-title">전체 시간</p>
+              <p className="sub-value">3분 42초</p>
             </div>
-            <div>
-              <p>분당 어절수</p>
-              <p>210어절/1분</p>
+            <div className="sub-container">
+              <p className="sub-title">분당 어절수</p>
+              <p className="sub-value">210어절/1분</p>
             </div>
+          </div>
+
+          <div className="menu-footer">
+            <button className="fd-confirmBtn">확인완료</button>
           </div>
         </div>
       </div>
