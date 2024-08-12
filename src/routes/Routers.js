@@ -5,7 +5,7 @@ import Simulation from '../pages/simulation/simulationpage';
 import LandingPage from "../pages/landing/LandingPage.js";
 import ThemePage from "../pages/theme/ThemePage.js";
 import LoginPage from '../pages/login/LoginPage.js';
-import TestPage from '../TestPage.js';
+import PatientListPage from '../pages/mypage/PatientListPage.js';
 
 const Routers = () => {
   return (
@@ -17,7 +17,7 @@ const Routers = () => {
         <Route path="/" element={<LandingPage />} />
         <Route path="/theme" element={<ThemePage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/test" element={<TestPage />} />
+        <Route path="/patients" element={<PatientListPage />} />
       </Routes>
     </BrowserRouter>
   );
