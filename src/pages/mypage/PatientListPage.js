@@ -10,9 +10,20 @@ const patients = Array.from({ length: 20 }, (_, i) => ({
 
 const PatientListPage = () => {
   const [selectedPatient, setSelectedPatient] = useState(null);
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
 
   const handleRowClick = (patient) => {
     setSelectedPatient(patient);
+  };
+
+  const handleSimulationStartClick = () => {
+    if (selectedPatient) {
+      setIsPopupOpen(true);
+    }
+  };
+
+  const handleClosePopup = () => {
+    setIsPopupOpen(false);
   };
 
   return (
@@ -21,12 +32,21 @@ const PatientListPage = () => {
       <div className="patient-list-container">
         <div className="patient-list-header">
           <div className="patient-list-title">환자 목록</div>
-          {selectedPatient && (
-            <div className="button-container">
-              <button className="action-button">시뮬레이션 시작</button>
-              <button className="action-button">진단 목록 및 옵션</button>
-            </div>
-          )}
+          <div className="button-container">
+            <button
+              className={`action-button ${selectedPatient ? 'active' : ''}`}
+              onClick={handleSimulationStartClick}
+              disabled={!selectedPatient}
+            >
+              시뮬레이션 시작
+            </button>
+            <button
+              className={`action-button ${selectedPatient ? 'active' : ''}`}
+              disabled={!selectedPatient}
+            >
+              진단 목록 및 옵션
+            </button>
+          </div>
         </div>
         <div className="patient-list-table-container">
           <table className="patient-list-table">
@@ -53,6 +73,20 @@ const PatientListPage = () => {
           </table>
         </div>
       </div>
+
+      {isPopupOpen && (
+        <div className="popup-overlay">
+          <div className="popup">
+            <button className="close-button" onClick={handleClosePopup}>X</button>
+            <div className="popup-content">
+              <h2>환자 정보</h2>
+              <p>ID: {selectedPatient.id}</p>
+              <p>이름: {selectedPatient.name}</p>
+              <button className="action-button active" onClick={handleClosePopup}>시뮬레이션 시작</button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };
