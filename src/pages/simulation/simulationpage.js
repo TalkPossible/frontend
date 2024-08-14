@@ -3,6 +3,7 @@ import './simulationpage.css';
 import conversationImage from '../../assets/images/simultest.jpg';
 import micImage from '../../assets/images/blackmic.png';
 import AWS from 'aws-sdk';
+import MotionDetection from '../motion/motiondetection';
 
 // // 환경 변수 로그
 // console.log("AWS S3 Region:", process.env.REACT_APP_MOTION_S3_REGION);
@@ -49,11 +50,49 @@ const uploadToS3 = async (blob) => {
   });
 };
 
+// 동작 감지 내역 백엔드로 전송
+const postMotionData = async (motions, videoUrl) => {
+
+    // motionList 생성
+    const motionList = motions.length > 0 ? motions.map(motion => ({
+      actionName: motion.motionName,
+      timestamp: motion.timestamp,
+    })) : null;
+  
+    try {
+      const endpoint = '/api/v1/motion';
+  
+      const body = JSON.stringify({ motionList, videoUrl });
+      console.log("body: ", body);
+  
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: body,
+      });
+  
+      if (!response.ok) {
+        throw new Error('Failed to send motion data');
+      }
+  
+      console.log('Motion data sent successfully!');
+  
+      // 성공적으로 전송 후 세션 스토리지 비우기
+      sessionStorage.removeItem('motions');
+      sessionStorage.removeItem('videoUrl');
+    } catch (error) {
+      console.error('Error sending motion data:', error);
+    }  
+};
+
 const SimulationPage = () => {
   const [started, setStarted] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [videoUrl, setVideoUrl] = useState(null);
   const [stream, setStream] = useState(null);
+  const [isRecording, setIsRecording] = useState(false);
 
   const startSimulation = async () => {
     if (started) return; // 이미 시작된 경우 중복 호출 방지
@@ -78,15 +117,23 @@ const SimulationPage = () => {
 
       recorder.onstop = async () => {
         const blob = new Blob(chunks, { type: 'video/webm' });
+        
+        // 세션 스토리지에서 동작 감지 내역 가져오기
+        const motions = JSON.parse(sessionStorage.getItem('motions')) || [];
 
         // 업로드 및 URL 업데이트
         try {
           const s3Url = await uploadToS3(blob);
           setVideoUrl(s3Url); // S3 URL로 업데이트
+
+          // 백엔드로 데이터 전송
+          await postMotionData(motions, s3Url);
+
         } catch (error) {
           console.error("Error uploading video to S3: ", error);
         } finally {
           setStarted(false);
+          setIsRecording(false); // Motion Detection 중지
           if (stream) {
             stream.getTracks().forEach(track => track.stop());
           }
@@ -97,6 +144,7 @@ const SimulationPage = () => {
 
       recorder.start();
       setStarted(true);
+      setIsRecording(true); // MotionDetection 시작
     } catch (error) {
       if (error.name === "NotReadableError") {
         console.error("웹캠 접근 오류: 다른 애플리케이션이 웹캠을 사용 중이거나 리소스 문제로 인해 접근할 수 없습니다.");
@@ -140,6 +188,7 @@ const SimulationPage = () => {
           )}
         </div>
       )}
+      <MotionDetection isRecording={isRecording}/>
     </div>
   );
 }

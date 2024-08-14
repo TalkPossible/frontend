@@ -4,7 +4,7 @@ import { m } from 'framer-motion';
 import AWS from 'aws-sdk';
 import { log } from '@tensorflow/tfjs';
 
-const MotionDetection = () => {
+const MotionDetection = ({ isRecording }) => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const [poseLandmarker, setPoseLandmarker] = useState(null);
@@ -49,6 +49,13 @@ const MotionDetection = () => {
     startTime.current = currentTime;
     console.log('녹화 시작 시간 설정됨:', new Date(currentTime).toISOString());
   };
+
+  // isRecording 상태가 변경될 때 녹화 시작 시간 설정
+  useEffect(() => {
+    if (isRecording) {
+      startRecording();
+    }
+  }, [isRecording]);
 
   // 거리 계산
   const calculateDistance = (landmark1, landmark2) => {
@@ -335,47 +342,6 @@ const MotionDetection = () => {
 
   };
 
-  // 동작 감지 내역 백엔드로 전송
-  const postMotionData = async () => {
-
-    // 세션 스토리지에서 동작 감지 내역 가져오기
-    const motions = JSON.parse(sessionStorage.getItem('motions')) || [];
-
-    // motionList 생성
-    const motionList = motions.length > 0 ? motions.map(motion => ({
-      actionName: motion.actionName,
-      imgUrl: motion.imgUrl,
-      timestamp: motion.timestamp,
-    })) : null;
-  
-    try {
-      const endpoint = '...'; // endpoint 추가 필요
-  
-      const body = JSON.stringify({ motionList });
-      console.log("body: ", body);
-  
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: body,
-      });
-  
-      if (!response.ok) {
-        throw new Error('Failed to send motion data');
-      }
-  
-      console.log('Motion data sent successfully!');
-  
-      // 성공적으로 전송 후 세션 스토리지 비우기
-      sessionStorage.removeItem('motions');
-    } catch (error) {
-      console.error('Error sending motion data:', error);
-    }
-    
-  };
-
   useEffect(() => {
     const predictWebcam = async () => {
       if (poseLandmarker && videoRef.current && canvasRef.current) {
@@ -417,13 +383,14 @@ const MotionDetection = () => {
               checkTouchingNeck(landmarks);
               checkTouchingFace(landmarks);
 
-              drawingUtils.drawLandmarks(landmarks, {
-                radius: (data) => {
-                  const radius = lerp(data.from.z, -0.15, 0.1, 3, 0.5);
-                  return radius < 0 ? 0.5 : radius;
-                },
-              });
-              drawingUtils.drawConnectors(landmarks, PoseLandmarker.POSE_CONNECTIONS);
+              // 관절 위치 그리기 제거
+              // drawingUtils.drawLandmarks(landmarks, {
+              //   radius: (data) => {
+              //     const radius = lerp(data.from.z, -0.15, 0.1, 3, 0.5);
+              //     return radius < 0 ? 0.5 : radius;
+              //   },
+              // });
+              // drawingUtils.drawConnectors(landmarks, PoseLandmarker.POSE_CONNECTIONS);
             } else {
               console.log('No landmarks detected');
             }
@@ -447,7 +414,6 @@ const MotionDetection = () => {
         videoRef.current.srcObject = stream;
         videoRef.current.onloadeddata = () => {
           videoRef.current.play();
-          startRecording(); // 녹화 시작 시간 설정
           predictWebcam();
         };
       };
