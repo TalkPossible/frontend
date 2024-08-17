@@ -6,6 +6,7 @@ import LandingPage from "../pages/landing/LandingPage.js";
 import ThemePage from "../pages/theme/ThemePage.js";
 import LoginPage from '../pages/login/LoginPage.js';
 import PatientListPage from '../pages/mypage/PatientListPage.js';
+import SimulationListPage from '../pages/mypage/SimulationListPage.js';
 import PatientDetailPage from '../pages/patients/PatientDetailPage.js';
 
 
@@ -19,8 +20,10 @@ const Routers = () => {
         <Route path="/theme" element={<ThemePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/patients" element={<PatientListPage />} />
+        <Route path="/patients/:id" element={<SimulationListPage />} />
         <Route path="/patientsdetail" element={<PatientDetailPage />} />
-      </Routes>
+        {/* <Route path="/feedback/:id" element={< />} /> */}
+        </Routes>
     </BrowserRouter>
   );
 }
