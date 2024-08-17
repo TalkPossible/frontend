@@ -86,7 +86,7 @@
 .micImage {
   width: 2cm;
   height: 2cm;
-  border-radius: 50%;
+  /* border-radius: 50%; */
   object-fit: cover;
   display: block;
   border: none;
@@ -94,7 +94,7 @@
 }
 
 .recordButton::after {
-  content: "버튼을 누르고 녹음을 시작하세요";
+  content: "버튼을 누르고 대화를 시작하세요";
   position: absolute;
   bottom: 100%;
   left: 50%;
@@ -102,6 +102,7 @@
   background: #333;
   color: #fff;
   padding: 5px 10px;
+  margin-bottom: 5px;
   border-radius: 5px;
   white-space: nowrap;
   opacity: 0;
@@ -112,6 +113,16 @@
 .recordButton:hover::after {
   opacity: 1;
   visibility: visible;
+}
+
+.disable-hover {
+  color: #777;
+  opacity: 0.2;
+  cursor: default;
+}
+
+.disable-hover::after {
+  opacity: 0 !important;
 }
 
 body {

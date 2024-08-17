@@ -69,6 +69,18 @@ const SimulationPage = () => {
 
   const { setUserMicDis, userMicDis, userTermMessage, recording, handleStartRecording, handleStopRecording } = useTxtRec();
 
+  const recordButton = useRef(null);
+
+  useEffect(() => {
+    if (recordButton.current) {
+      if (userMicDis) {
+        recordButton.current.classList.add('disable-hover');
+      } else {
+        recordButton.current.classList.remove('disable-hover');
+      }
+    }
+  }, [userMicDis]);
+
   useEffect(() => {
     if (started) {
       // started가 true이고, userTermMessae가 변경되면 gptAPI 호출
@@ -172,7 +184,7 @@ const SimulationPage = () => {
             <button className="stopButton" onClick={stopSimulation}>종료</button>
           </div>
           <div className="bottomSection">
-            <button className="recordButton" disabled={userMicDis}
+            <button className="recordButton disable-hover" disabled={userMicDis} ref={recordButton}
               onClick={recording ? handleStopRecording : handleStartRecording}
             >
               <img className="micImage"
