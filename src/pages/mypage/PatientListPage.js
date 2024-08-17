@@ -44,7 +44,7 @@ const PatientListPage = () => {
               className={`action-button ${selectedPatient ? 'active' : ''}`}
               disabled={!selectedPatient}
             >
-              진단 목록 및 옵션
+              진단 목록
             </button>
           </div>
         </div>
