@@ -21,7 +21,6 @@ export const onRecAudio = (setStream, setMedia, setOnRec, setSource, setAnalyser
 
     mediaRecorder.addEventListener('dataavailable', (e) => {
       setAudioUrl(e.data);
-      // console.log("FuncRecordUpload에서 녹음시작에서 오디오 url 확인 : ", e.data);
     });
 
     mediaRecorder.start();
@@ -66,7 +65,5 @@ export const onSubmitAudioFile = async (audioUrl) => {
     await blockBlobClient.uploadBrowserData(sound);
 
     return fileName;
-
-    // console.log(`File uploaded to Azure Blob Storage: ${blockBlobClient.url}`);
   }
 };

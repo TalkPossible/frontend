@@ -20,20 +20,18 @@ export const startRecording = (onResult, onError) => {
 
   recognizer.recognized = (s, e) => {
     if (e.result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
-      console.log(`RECOGNIZED Text => ${e.result.text}`);
+      // console.log(`RECOGNIZED Text => ${e.result.text}`);
       onResult(e.result.text);
     } else if (e.result.reason === SpeechSDK.ResultReason.NoMatch) {
-      console.log('NOMATCH: Speech could not be recognized.');
+      // console.log('NOMATCH: Speech could not be recognized.');
     }
   };
 
   recognizer.canceled = (s, e) => {
-    // console.log(`CANCELED: Reason=${e.reason}`);
     stopRecording(); // 인식이 취소된 경우에도 stopRecording을 호출.
   };
 
   recognizer.sessionStopped = (s, e) => {
-    // console.log('Session stopped.');
     stopRecording(); // 세션이 중지된 경우에도 stopRecording을 호출.
   };
 
@@ -44,7 +42,6 @@ export const stopRecording = () => {
   if (recognizerRef) {
     recognizerRef.stopContinuousRecognitionAsync(
       () => {
-        // console.log('Recognition stopped.');
         recognizerRef = null; // 인식이 중지되면 참조를 지움.
       },
       (err) => {

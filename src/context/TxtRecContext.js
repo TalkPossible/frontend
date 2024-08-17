@@ -36,7 +36,7 @@ export const TxtRecProvider = ({ children }) => {
     setRecording(false);
     setUserMicDis(true); // 사용자 마이크 비활성화
     setUserTermMessage(fullScript);
-    console.log("한 텀 말하기 종료 후 사용자 전체 텍스트 : ", fullScript); // 백 api 호출해서 텍스트 보낼 부분
+    console.log("user term message : ", fullScript); // 백 api 호출해서 텍스트 보낼 부분
     stopRecording();
     offRecAudio(stream, media, analyser, source, setOnRec);
   };
@@ -44,7 +44,7 @@ export const TxtRecProvider = ({ children }) => {
   useEffect(() => {
     if (audioUrl) {
       onSubmitAudioFile(audioUrl).then(fileName => {
-        console.log('오디오 업로드 후 파일명 : ', fileName); // 백 api 호출해서 파일명 보낼 부분
+        console.log('audio file name : ', fileName); // 백 api 호출해서 파일명 보낼 부분
       })
     }
   }, [audioUrl]);
