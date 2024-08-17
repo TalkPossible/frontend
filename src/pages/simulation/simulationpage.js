@@ -155,9 +155,16 @@ const SimulationPage = () => {
   return (
     <div className="container">
       {!started ? (
-        <button className="startButton" onClick={startSimulation}>
-          시뮬레이션 시작
-        </button>
+        <>
+          <div className="description">
+            <span>말하는 도중</span> 또는 <span>발화 직후</span> 녹음중지 버튼을 누르면 <br/>
+            마지막 발화를 인지하지 못 할 수 있느니 <br/>
+            <span>텀</span>을 두고 버튼을 클릭해주세요.
+          </div>
+          <button className="startButton" onClick={startSimulation}>
+            시뮬레이션 시작
+          </button>
+        </>
       ) : (
         <div className="simulationContainer">
           <div className="topSection">
