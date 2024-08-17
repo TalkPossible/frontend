@@ -8,6 +8,8 @@ import './simulationpage.css';
 
 import {gptAPI} from "../../service/ApiService.js";
 import {ttsAPI} from "../../utils/FuncGoogleTTS.js";
+import { useTxtRec } from '../../context/TxtRecContext.js';
+
 
 // // 환경 변수 로그
 // console.log("AWS S3 Region:", process.env.REACT_APP_MOTION_S3_REGION);
