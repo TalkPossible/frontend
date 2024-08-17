@@ -28,8 +28,8 @@ export const TxtRecProvider = ({ children }) => {
   const handleStartRecording = () => {
     setRecording(true);
     setFullScript('');
-    onRecAudio(setStream, setMedia, setOnRec, setSource, setAnalyser, setAudioUrl);
-    startRecording(handleResult, console.error);
+    onRecAudio(setStream, setMedia, setOnRec, setSource, setAnalyser, setAudioUrl); // 음성 녹음
+    startRecording(handleResult, console.error); // azure stt
   };
 
   const handleStopRecording = () => {
