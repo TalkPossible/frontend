@@ -1,5 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { TxtRecProvider } from '../context/TxtRecContext.js';
+
 import PoseDetection from '../pages/motion/motiondetection';
 import Simulation from '../pages/simulation/simulationpage';
 import LandingPage from "../pages/landing/LandingPage.js";
@@ -15,7 +17,12 @@ const Routers = () => {
       <Routes>
         {/* <Route path="/" element={<LandingPage />} /> */}
         <Route path="/motiondetection" element={<PoseDetection />} />
-        <Route path="/simulation" element={<Simulation/>}></Route>
+        {/* <Route path="/simulation" element={<Simulation/>}></Route> */}
+        <Route path="/simulation" element={
+          <TxtRecProvider>
+            <Simulation />
+          </TxtRecProvider>
+        }/>
         <Route path="/" element={<LandingPage />} />
         <Route path="/theme" element={<ThemePage />} />
         <Route path="/login" element={<LoginPage />} />
