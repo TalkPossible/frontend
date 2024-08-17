@@ -1,8 +1,13 @@
-import React, { useState } from 'react';
-import './simulationpage.css';
-import conversationImage from '../../assets/images/simultest.jpg';
-import micImage from '../../assets/images/blackmic.png';
+import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AWS from 'aws-sdk';
+
+import conversationImage from '../../assets/images/simultest.jpg';
+
+import './simulationpage.css';
+
+import {gptAPI} from "../../service/ApiService.js";
+import {ttsAPI} from "../../utils/FuncGoogleTTS.js";
 
 // // 환경 변수 로그
 // console.log("AWS S3 Region:", process.env.REACT_APP_MOTION_S3_REGION);
@@ -54,6 +59,36 @@ const SimulationPage = () => {
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [videoUrl, setVideoUrl] = useState(null);
   const [stream, setStream] = useState(null);
+
+  const navigate = useNavigate();
+
+  const [cacheId, setCacheId] = useState(null); // gpt의 cacheId
+  const [content, setContent] = useState(""); // gpt의 답변
+
+  const { setUserMicDis, userMicDis, userTermMessage, recording, handleStartRecording, handleStopRecording } = useTxtRec();
+
+  useEffect(() => {
+    if (started) {
+      // started가 true이고, userTermMessae가 변경되면 gptAPI 호출
+      gptAPI(userTermMessage, cacheId).then(newResponse => {
+      setCacheId(newResponse.newCacheId);
+        setContent(newResponse.newContent);
+      }).catch(error => {
+        console.log('Error calling GPT API or TTS API: ', error);
+      });
+    } else {
+      window.speechSynthesis.cancel();  
+    }
+  },[userTermMessage, started]); 
+
+  useEffect(() => {
+    if (content !== "") {
+      // content가 변경되면 ttsAPI 호출
+      if (started === true && content !== "" && cacheId !== null) {
+        ttsAPI(content, setUserMicDis);
+      };
+    };
+  }, [started, cacheId, content]);
 
   const startSimulation = async () => {
     if (started) return; // 이미 시작된 경우 중복 호출 방지
@@ -109,6 +144,7 @@ const SimulationPage = () => {
   const stopSimulation = () => {
     if (mediaRecorder && mediaRecorder.state !== "inactive") {
       mediaRecorder.stop();
+      navigate('/');
     } else {
       console.error("MediaRecorder is already inactive or not initialized.");
     }
@@ -127,8 +163,12 @@ const SimulationPage = () => {
             <button className="stopButton" onClick={stopSimulation}>종료</button>
           </div>
           <div className="bottomSection">
-            <button className="recordButton">
-              <img src={micImage} alt="Mic Icon" className="micImage" />
+            <button className="recordButton" disabled={userMicDis}
+              onClick={recording ? handleStopRecording : handleStartRecording}
+            >
+              <img className="micImage"
+                src={recording ? "/images/simul/mic_ing.png" : "/images/simul/mic.png"} alt="mic"  
+              />
             </button>
           </div>
           {videoUrl && (
