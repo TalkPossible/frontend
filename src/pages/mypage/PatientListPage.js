@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './PatientListPage.css';
 import Header from '../../components/Header';
 
@@ -11,6 +12,7 @@ const patients = Array.from({ length: 20 }, (_, i) => ({
 const PatientListPage = () => {
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const navigate = useNavigate();
 
   const handleRowClick = (patient) => {
     setSelectedPatient(patient);
@@ -24,6 +26,12 @@ const PatientListPage = () => {
 
   const handleClosePopup = () => {
     setIsPopupOpen(false);
+  };
+
+  const handleSimulationListClick = () => {
+    if (selectedPatient) {
+      navigate(`/patients/${selectedPatient.id}`);
+    }
   };
 
   return (
@@ -42,6 +50,7 @@ const PatientListPage = () => {
             </button>
             <button
               className={`action-button ${selectedPatient ? 'active' : ''}`}
+              onClick={handleSimulationListClick}
               disabled={!selectedPatient}
             >
               진단 목록
