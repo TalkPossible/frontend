@@ -11,7 +11,7 @@ const LoginPage = () => {
   const [error, setError] = useState(null);
 
   const handleLogin = async () => {
-    setError(null); // Reset error state
+    setError(null); 
     try {
       const response = await fetch('https://talkpossible.site/api/v1/auth/login', {
         method: 'POST',
@@ -19,8 +19,8 @@ const LoginPage = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email, // Request body: email
-          password, // Request body: password
+          email, // Request body
+          password, // Request body
         }),
       });
 
@@ -28,12 +28,10 @@ const LoginPage = () => {
         const data = await response.json();
         console.log('로그인 성공:', data);
 
-        // 로그인 성공 시, accessToken과 refreshToken을 로컬 스토리지에 저장
         localStorage.setItem('accessToken', data.accessToken);
         localStorage.setItem('refreshToken', data.refreshToken);
 
-        // 홈으로 이동
-        navigate('/');
+        navigate('/patientsdetail');
       } else {
         const errorData = await response.json();
         setError(errorData.message || '로그인 실패');
