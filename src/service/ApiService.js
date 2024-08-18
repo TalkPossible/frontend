@@ -6,6 +6,12 @@ export function call(api, method, request) {
     "Content-Type": "application/json",
   });
 
+  const accessToken = process.env.REACT_APP_ACC_TOKEN;
+  if (accessToken && accessToken !== null) {
+    headers.append("Authorization", "Bearer " + accessToken);
+    console.log(Object.fromEntries(headers.entries())); // 헤더 내용을 객체로 변환하여 콘솔에 출력
+  }
+
   let options = {
     headers,
     url: API_BASE_URL + api,
