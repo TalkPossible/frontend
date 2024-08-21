@@ -10,13 +10,6 @@ import {gptAPI} from "../../service/ApiService.js";
 import {ttsAPI} from "../../utils/FuncGoogleTTS.js";
 import { useTxtRec } from '../../context/TxtRecContext.js';
 
-
-// // 환경 변수 로그
-// console.log("AWS S3 Region:", process.env.REACT_APP_MOTION_S3_REGION);
-// console.log("AWS S3 Access Key:", process.env.REACT_APP_MOTION_S3_ACCESS_KEY);
-// console.log("AWS S3 Secret Key:", process.env.REACT_APP_MOTION_S3_SECRET_KEY);
-// console.log("AWS S3 Bucket for Videos:", process.env.REACT_APP_MOTION_S3_BUCKET_NAME);
-
 // AWS S3 설정 함수
 const configureS3 = () => {
   const REGION = process.env.REACT_APP_MOTION_S3_REGION;
