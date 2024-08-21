@@ -8,6 +8,21 @@ import "./LandingPage.css";
 const LandingPage = () => {
   const navigate = useNavigate();
 
+  const checkLoginStatus = () => { // 로그인 상태 확인 함수
+    const token = localStorage.getItem('accessToken');
+    return !!token; // 토큰이 있으면 true, 없으면 false
+  };
+
+  const startClick = () => {
+    const isLoggedIn = checkLoginStatus(); // 로그인 상태를 확인하는 함수
+
+    if (!isLoggedIn) {
+      navigate('/login'); 
+    } else {
+      navigate("/patientsdetail");
+    }
+  };
+
   useEffect(() => {
     const introDivs = document.querySelectorAll('.intro-description > div');
     const eyeImg = document.querySelector('#problem-img-eye');
@@ -42,8 +57,6 @@ const LandingPage = () => {
       window.removeEventListener('scroll', handleScroll);
     };
   }, []);
-
-  const startClick = () => {navigate("/patientsdetail");};
 
   const icons = [
     "/images/theme/icon_restaurant.png",
