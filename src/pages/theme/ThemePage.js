@@ -3,7 +3,6 @@ import { call } from '../../service/ApiService.js';
 
 import Header from "../../components/Header.js";
 import Card from "./Card.js"
-import Datas from "./DummyData.js";
 import Modal from "../../components/Modal.js";
 import CardSkeleton from "./CardSkeleton.js";
 
@@ -23,7 +22,7 @@ const ThemePage = () => {
   }
 
   useEffect(() => {
-if(datas.length > 0) {
+    if(datas.length > 0) {
       localStorage.setItem("situationId", datas[selected].situationId);
     }
   }, [datas, selected]);
@@ -66,12 +65,12 @@ if(datas.length > 0) {
           ))
         )}
       </div>
-      
+
       {datas.length > 0 && (
-      <Modal open={modalOpen} close={closeModal} >
+        <Modal open={modalOpen} close={closeModal} >
           <img className="modal-img" src={getImageUrl(datas[selected].imgUrl)} alt={datas[selected].title} />
           <div className="modal-title">{datas[selected].title}</div>
-        <div className="modal-sinario">시나리오</div>
+          <div className="modal-sinario">시나리오</div>
           <div className="modal-desc">{datas[selected].description}</div>
         </Modal>
       )}

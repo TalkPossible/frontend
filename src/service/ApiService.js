@@ -9,7 +9,6 @@ export function call(api, method, request) {
   const Authorization = localStorage.getItem('accessToken');
   if (Authorization && Authorization !== null) {
     headers.append("Authorization", "Bearer " + Authorization);
-    console.log(Object.fromEntries(headers.entries())); // 헤더 내용을 객체로 변환하여 콘솔에 출력
   }
 
   let options = {
