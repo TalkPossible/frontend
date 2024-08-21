@@ -25,6 +25,7 @@ const PatientDetailPage = () => {
   };
 
   const handleSelectSituation = () => {
+    localStorage.setItem('patientId', selectedPatient.id);
     navigate('/theme'); 
   };
 
