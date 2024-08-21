@@ -17,7 +17,7 @@ const Header = () => {
       <div className="background"/>
       <div className="foreground header-group">
         <div className="header-logo" onClick={logoClick}>
-          <img src="TalkPossible_logo.png" alt="img" />
+          <img src="/TalkPossible_logo.png" alt="img" />
         </div>
         <div className="group-menu">
           <div className="text-color-change-sign">회원가입</div>
