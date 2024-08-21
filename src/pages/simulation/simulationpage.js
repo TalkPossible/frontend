@@ -1,8 +1,14 @@
-import React, { useState } from 'react';
-import './simulationpage.css';
-import conversationImage from '../../assets/images/simultest.jpg';
-import micImage from '../../assets/images/blackmic.png';
+import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AWS from 'aws-sdk';
+
+import conversationImage from '../../assets/images/simultest.jpg';
+
+import './simulationpage.css';
+
+import {gptAPI} from "../../service/ApiService.js";
+import {ttsAPI} from "../../utils/FuncGoogleTTS.js";
+import { useTxtRec } from '../../context/TxtRecContext.js';
 
 // AWS S3 설정 함수
 const configureS3 = () => {
@@ -49,33 +55,52 @@ const SimulationPage = () => {
   const [videoUrl, setVideoUrl] = useState(null);
   const [stream, setStream] = useState(null);
 
+  const navigate = useNavigate();
+
+  const [cacheId, setCacheId] = useState(null); // gpt의 cacheId
+  const [content, setContent] = useState(""); // gpt의 답변
+
+  const { setUserMicDis, userMicDis, userTermMessage, recording, handleStartRecording, handleStopRecording } = useTxtRec();
+
+  const recordButton = useRef(null);
+
+  useEffect(() => {
+    if (recordButton.current) {
+      if (userMicDis) {
+        recordButton.current.classList.add('disable-hover');
+      } else {
+        recordButton.current.classList.remove('disable-hover');
+      }
+    }
+  }, [userMicDis]);
+
+  useEffect(() => {
+    if (started) {
+      // started가 true이고, userTermMessage가 변경되면 gptAPI 호출
+      gptAPI(userTermMessage, cacheId).then(newResponse => {
+        setCacheId(newResponse.newCacheId);
+        setContent(newResponse.newContent);
+      }).catch(error => {
+        console.log('Error calling GPT API or TTS API: ', error);
+      });
+    } else {
+      window.speechSynthesis.cancel();  
+    }
+  },[userTermMessage, started]); 
+
+  useEffect(() => {
+    if (content !== "") {
+      // content가 변경되면 ttsAPI 호출
+      if (started === true && content !== "" && cacheId !== null) {
+        ttsAPI(content, setUserMicDis);
+      };
+    };
+  }, [started, cacheId, content]);
+
   const startSimulation = async () => {
     if (started) return; // 이미 시작된 경우 중복 호출 방지
 
     setVideoUrl(null); // 이전 비디오 URL 초기화
-
-    let simulationId = null;
-    try {
-      const response = await fetch('/api/v1/simulations', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-          'patientId': localStorage.getItem('patientId'), 
-          'situationId': localStorage.getItem('situationId'), 
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to create simulation');
-      }
-
-      const data = await response.json();
-      simulationId = data.simulationId;
-      console.log('Simulation created with ID:', simulationId);
-    } catch (error) {
-      console.error("Error creating simulation:", error);
-      return; // 시뮬레이션 생성 실패 시 이후 로직 실행하지 않음
-    }
 
     try {
       const userMediaStream = await navigator.mediaDevices.getUserMedia({
@@ -127,6 +152,7 @@ const SimulationPage = () => {
   const stopSimulation = () => {
     if (mediaRecorder && mediaRecorder.state !== "inactive") {
       mediaRecorder.stop();
+      navigate('/');
     } else {
       console.error("MediaRecorder is already inactive or not initialized.");
     }
@@ -135,9 +161,16 @@ const SimulationPage = () => {
   return (
     <div className="container">
       {!started ? (
-        <button className="startButton" onClick={startSimulation}>
-          시뮬레이션 시작
-        </button>
+        <>
+          <div className="description">
+            <span>말하는 도중</span> 또는 <span>발화 직후</span> 녹음중지 버튼을 누르면 <br/>
+            마지막 발화를 인지하지 못 할 수 있느니 <br/>
+            <span>텀</span>을 두고 버튼을 클릭해주세요.
+          </div>
+          <button className="startButton" onClick={startSimulation}>
+            시뮬레이션 시작
+          </button>
+        </>
       ) : (
         <div className="simulationContainer">
           <div className="topSection">
@@ -145,8 +178,12 @@ const SimulationPage = () => {
             <button className="stopButton" onClick={stopSimulation}>종료</button>
           </div>
           <div className="bottomSection">
-            <button className="recordButton">
-              <img src={micImage} alt="Mic Icon" className="micImage" />
+            <button className="recordButton disable-hover" disabled={userMicDis} ref={recordButton}
+              onClick={recording ? handleStopRecording : handleStartRecording}
+            >
+              <img className="micImage"
+                src={recording ? "/images/simul/mic_ing.png" : "/images/simul/mic.png"} alt="mic"  
+              />
             </button>
           </div>
           {videoUrl && (

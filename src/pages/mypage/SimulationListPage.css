@@ -82,8 +82,3 @@
 .action-button.active:hover {
   background-color: #e0b700; 
 }
-
-/* 로그인과 회원가입 숨기기 */
-.header .group-menu {
-  display: none;
-}
