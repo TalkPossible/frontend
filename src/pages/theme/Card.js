@@ -10,7 +10,7 @@ const Card = ({Data, setModalOpen, setSelected, index}) => {
 
   return(
     <div className="card" onClick={onCardClick}>
-      <img src={Data.img}  alt={Data.title} className="card-img" />
+      <img src={getImageUrl(Data.imgUrl)}  alt={Data.title} className="card-img" />
       <div className="card-info" >
         <div className="inner" >
           <p className="info-title" >{Data.title}</p>
