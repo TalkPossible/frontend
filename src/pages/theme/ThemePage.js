@@ -24,8 +24,9 @@ const ThemePage = () => {
 
   useEffect(() => {
 if(datas.length > 0) {
-    localStorage.setItem("situationId", selected);
-  }, [selected]);
+      localStorage.setItem("situationId", datas[selected].situationId);
+    }
+  }, [datas, selected]);
 
   useEffect(() => {
     const fetchData = async () => {
