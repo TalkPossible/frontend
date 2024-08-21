@@ -43,7 +43,7 @@ const LandingPage = () => {
     };
   }, []);
 
-  const startClick = () => {navigate("/theme");};
+  const startClick = () => {navigate("/patientsdetail");};
 
   const icons = [
     "/images/theme/icon_restaurant.png",
