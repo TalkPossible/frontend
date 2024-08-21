@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import Header from "../../components/Header.js";
 import Card from "./Card.js"
@@ -18,6 +18,9 @@ const ThemePage = () => {
     setModalOpen(false);
   }
 
+  useEffect(() => {
+    localStorage.setItem("situationId", selected);
+  }, [selected])
 
   return(
     <div>
