@@ -4,12 +4,6 @@ import conversationImage from '../../assets/images/simultest.jpg';
 import micImage from '../../assets/images/blackmic.png';
 import AWS from 'aws-sdk';
 
-// // 환경 변수 로그
-// console.log("AWS S3 Region:", process.env.REACT_APP_MOTION_S3_REGION);
-// console.log("AWS S3 Access Key:", process.env.REACT_APP_MOTION_S3_ACCESS_KEY);
-// console.log("AWS S3 Secret Key:", process.env.REACT_APP_MOTION_S3_SECRET_KEY);
-// console.log("AWS S3 Bucket for Videos:", process.env.REACT_APP_MOTION_S3_BUCKET_NAME);
-
 // AWS S3 설정 함수
 const configureS3 = () => {
   const REGION = process.env.REACT_APP_MOTION_S3_REGION;
@@ -59,6 +53,30 @@ const SimulationPage = () => {
     if (started) return; // 이미 시작된 경우 중복 호출 방지
 
     setVideoUrl(null); // 이전 비디오 URL 초기화
+
+    let simulationId = null;
+    try {
+      const response = await fetch('/api/v1/simulations', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+          'patientId': localStorage.getItem('patientId'), 
+          'situationId': localStorage.getItem('situationId'), 
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create simulation');
+      }
+
+      const data = await response.json();
+      simulationId = data.simulationId;
+      console.log('Simulation created with ID:', simulationId);
+    } catch (error) {
+      console.error("Error creating simulation:", error);
+      return; // 시뮬레이션 생성 실패 시 이후 로직 실행하지 않음
+    }
+
     try {
       const userMediaStream = await navigator.mediaDevices.getUserMedia({
         video: true,
