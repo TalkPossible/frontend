@@ -16,20 +16,21 @@ const Routers = () => {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/motiondetection" element={<PoseDetection />} />
+        {/* <Route path="/simulation" element={<Simulation/>}></Route> */}
         <Route path="/simulation" element={
           <TxtRecProvider>
             <Simulation />
           </TxtRecProvider>
         }/>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/motiondetection" element={<PoseDetection />} />
         <Route path="/theme" element={<ThemePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/patients" element={<PatientListPage />} />
         <Route path="/patients/:id" element={<SimulationListPage />} />
         <Route path="/patientsdetail" element={<PatientDetailPage />} />
         {/* <Route path="/feedback/:id" element={< />} /> */}
-        </Routes>
+      </Routes>
     </BrowserRouter>
   );
 }
