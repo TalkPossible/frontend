@@ -83,9 +83,9 @@ const SimulationPage = () => {
 
   useEffect(() => {
     if (started) {
-      // started가 true이고, userTermMessae가 변경되면 gptAPI 호출
+      // started가 true이고, userTermMessage가 변경되면 gptAPI 호출
       gptAPI(userTermMessage, cacheId).then(newResponse => {
-      setCacheId(newResponse.newCacheId);
+        setCacheId(newResponse.newCacheId);
         setContent(newResponse.newContent);
       }).catch(error => {
         console.log('Error calling GPT API or TTS API: ', error);
@@ -108,6 +108,7 @@ const SimulationPage = () => {
     if (started) return; // 이미 시작된 경우 중복 호출 방지
 
     setVideoUrl(null); // 이전 비디오 URL 초기화
+
     try {
       const userMediaStream = await navigator.mediaDevices.getUserMedia({
         video: true,
