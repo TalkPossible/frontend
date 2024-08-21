@@ -1,10 +1,12 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import '../assets/css/Modal.css';
 
 import {API_BASE_URL} from '../api/apiConfig.js';
 
 const Modal = (props) => {
+  const navigate = useNavigate();
   const { open, close } = props;
 
   const handleStartBtn = async () => {
@@ -28,6 +30,8 @@ const Modal = (props) => {
     } catch (error) {
       console.error("Error creating simulation:", error);
       return; // 시뮬레이션 생성 실패 시 이후 로직 실행하지 않음
+    } finally {
+      navigate('/simulation');
     }
   }
 
