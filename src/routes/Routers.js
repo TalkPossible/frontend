@@ -17,7 +17,6 @@ const Routers = () => {
     <BrowserRouter>
       <Routes>
         <Route path="/motiondetection" element={<PoseDetection />} />
-        {/* <Route path="/simulation" element={<Simulation/>}></Route> */}
         <Route path="/simulation" element={
           <TxtRecProvider>
             <Simulation />
