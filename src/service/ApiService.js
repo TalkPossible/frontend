@@ -41,10 +41,9 @@ const rmvServer = (str) => {
 
 // gpt api 호출
 export function gptAPI (message, cacheId) {
-  let simulationId = Number(localStorage.getItem('simulationId')); // type : string -> number
 
   let headers = new Headers({
-    "simulationId": simulationId,
+    "simulationId": parseInt(localStorage.getItem('simulationId')),
     "Authorization": `Bearer ${localStorage.getItem('accessToken')}`,
     "Content-Type": "application/json",
   });
@@ -60,6 +59,8 @@ export function gptAPI (message, cacheId) {
     cacheId
   };
 
+  console.log(options)
+
   return fetch(options.url, options).then((response) => {
     if(response.status === 200) {
       return response.json();
@@ -70,8 +71,7 @@ export function gptAPI (message, cacheId) {
       throw Error(response);
     }
   }).catch((error) => {
-    console.log("http error");
-    console.log(error);
+    console.log("[http error]", error);
   }).then((response) => {
     const newCacheId = response.cacheId;
     const newContent = rmvServer(response.choices[0].message.content);
@@ -79,6 +79,6 @@ export function gptAPI (message, cacheId) {
     return newResponse;
   })
   .catch((error) => {
-    console.log('Error calling GPT API: ', error);
+    console.log('[Error calling GPT API]', error);
   });
 };
