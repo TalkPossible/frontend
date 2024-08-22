@@ -17,6 +17,7 @@ export const TxtRecProvider = ({ children }) => {
   const [source, setSource] = useState();
   const [analyser, setAnalyser] = useState();
   const [audioUrl, setAudioUrl] = useState();
+  const [fileNames, setFileNames] = useState([]);
 
   // 사용자 마이크 버튼 비활성화 관리
   const [userMicDis, setUserMicDis] = useState(true); // 마이크 비활성화 상태 
@@ -44,13 +45,13 @@ export const TxtRecProvider = ({ children }) => {
   useEffect(() => {
     if (audioUrl) {
       onSubmitAudioFile(audioUrl).then(fileName => {
-        console.log('audio file name : ', fileName); // 백 api 호출해서 파일명 보낼 부분
+        setFileNames((prevFileNames) => [...prevFileNames, fileName]);
       })
     }
   }, [audioUrl]);
 
   return (
-    <TxtRecContext.Provider value={{ setUserMicDis, userMicDis, userTermMessage, recording, handleStartRecording, handleStopRecording }}>
+    <TxtRecContext.Provider value={{ fileNames, setUserMicDis, userMicDis, userTermMessage, recording, handleStartRecording, handleStopRecording }}>
       {children}
     </TxtRecContext.Provider>
   );
