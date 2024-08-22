@@ -24,7 +24,7 @@ const FeedbackPage = () => {
     if (parentEl) {
       parentEl.style.display = 'none'; 
     };
-    menuList.current.style.display = 'block';
+    menuList.current.style.display = 'flex';
   };
   const conversationClicked = () => {
     menuList.current.style.display = 'none';
@@ -83,7 +83,6 @@ const FeedbackPage = () => {
               <div onClick={conversationClicked}><p>대화 내용</p></div>
               <div onClick={voiceClicked}><p>음성 피드백</p></div>
               <div onClick={motionClicked}><p>행동 피드백</p></div>
-              <div><p></p></div>
             </div>
           </div>
 
@@ -112,7 +111,7 @@ const FeedbackPage = () => {
 
         <div className="fd-menu menu-conversation" ref={menuConversation}>
           <div className="menu-detail-header">
-            <div>대화 내용</div> <button onClick={toMenuListClicked}>&times;</button>
+            <div className="header-title">대화 내용</div> <button onClick={toMenuListClicked}>&times;</button>
           </div>
 
           <div className="part-rest part-scroll">
@@ -129,14 +128,14 @@ const FeedbackPage = () => {
 
         <div className="fd-menu menu-voice" ref={menuVoice}>
           <div className="menu-detail-header">
-            <div>말더듬 분석</div> <button onClick={toMenuListClicked}>&times;</button>
+            <div className="header-title">말더듬 분석</div> <button onClick={toMenuListClicked}>&times;</button>
           </div>
 
           <div className="part-rest">
             <StutterCard stuttered={currentResult}></StutterCard>
           </div>
 
-          <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'space-between' }}>
+          <div className="btn-pn" >
             <button onClick={handlePrev} style={{ fontSize: '16px' }}>Prev</button>
             <button onClick={handleNext} style={{ fontSize: '16px' }}>Next</button>
           </div>
@@ -144,7 +143,7 @@ const FeedbackPage = () => {
 
         <div className="fd-menu menu-motion" ref={menuMotion}>
           <div className="menu-detail-header">
-            <div>동작 분석</div> <button onClick={toMenuListClicked}>&times;</button>
+            <div className="header-title">동작 분석</div> <button onClick={toMenuListClicked}>&times;</button>
           </div>
           
           <div className="part-rest part-scroll ">
