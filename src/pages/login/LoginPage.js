@@ -31,7 +31,7 @@ const LoginPage = () => {
         localStorage.setItem('accessToken', data.accessToken);
         localStorage.setItem('refreshToken', data.refreshToken);
 
-        navigate('/patientsdetail');
+        navigate('/');
       } else {
         const errorData = await response.json();
         setError(errorData.message || '로그인 실패');
