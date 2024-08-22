@@ -60,7 +60,7 @@ const SimulationPage = () => {
   const [cacheId, setCacheId] = useState(null); // gpt의 cacheId
   const [content, setContent] = useState(""); // gpt의 답변
 
-  const { setUserMicDis, userMicDis, userTermMessage, recording, handleStartRecording, handleStopRecording } = useTxtRec();
+  const { fileNames, setUserMicDis, userMicDis, userTermMessage, recording, handleStartRecording, handleStopRecording } = useTxtRec();
 
   const recordButton = useRef(null);
 
@@ -151,6 +151,7 @@ const SimulationPage = () => {
 
   const stopSimulation = () => {
     if (mediaRecorder && mediaRecorder.state !== "inactive") {
+      console.log("[상황종료] 파일명 리스트 : ", fileNames);
       mediaRecorder.stop();
       navigate('/');
     } else {

@@ -41,8 +41,6 @@ const rmvServer = (str) => {
 
 // gpt api 호출
 export function gptAPI (message, cacheId) {
-  let url = API_BASE_URL + "/api/v1/chatGPT/remember"
-
   let headers = new Headers({
     "simulationId": localStorage.getItem('simulationId'),
     "Authorization": `Bearer ${localStorage.getItem('accessToken')}`,
@@ -60,8 +58,6 @@ export function gptAPI (message, cacheId) {
     method: 'POST',
     body
   };
-
-  console.log(options)
 
   return fetch(options.url, options).then((response) => {
     if(response.status === 200) {
