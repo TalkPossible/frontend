@@ -41,23 +41,24 @@ const rmvServer = (str) => {
 
 // gpt api 호출
 export function gptAPI (message, cacheId) {
-  let simulationId = Number(localStorage.getItem('simulationId')); // type : string -> number
+  let url = API_BASE_URL + "/api/v1/chatGPT/remember"
 
   let headers = new Headers({
-    "simulationId": simulationId,
+    "simulationId": localStorage.getItem('simulationId'),
     "Authorization": `Bearer ${localStorage.getItem('accessToken')}`,
     "Content-Type": "application/json",
   });
 
-  // Headers 확인용
-  console.log(Object.fromEntries(headers.entries()));
+  let body = JSON.stringify({
+    "message": message,
+    "cacheId": cacheId,
+  })
 
   let options = {
-    headers,
     url: API_BASE_URL + "/api/v1/chatGPT/remember",
-    method: "POST",
-    message,
-    cacheId
+    headers,
+    method: 'POST',
+    body
   };
 
   return fetch(options.url, options).then((response) => {
