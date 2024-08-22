@@ -26,7 +26,6 @@ const Modal = (props) => {
 
       const data = await response.json();
       localStorage.setItem('simulationId', data.simulationId);
-      console.log('Simulation created with ID:', data.simulationId);
     } catch (error) {
       console.error("Error creating simulation:", error);
       return; // 시뮬레이션 생성 실패 시 이후 로직 실행하지 않음

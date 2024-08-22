@@ -51,7 +51,7 @@ export const offRecAudio = (stream, media, analyser, source, setOnRec) => {
 export const onSubmitAudioFile = async (audioUrl) => {
   if (audioUrl) {
     const time = new Date().getTime();
-    const fileName = "userID" + "_" + "simulID" + "_" + time;
+    const fileName = "audioFile" + "_" + time;
     const sound = new File([audioUrl], `${fileName}.wav`, { lastModified: new Date().getTime(), type: "audio/wav" });
 
     const account = storageAccAzure;
