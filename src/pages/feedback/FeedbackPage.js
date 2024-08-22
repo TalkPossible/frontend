@@ -1,7 +1,8 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 import Header from "../../components/Header";
+import { API_BASE_URL } from "../../api/apiConfig.js";
 
 import './FeedbackPage.css';
 
@@ -10,6 +11,23 @@ import { LeftBubble, RightBubble } from "../../components/ChatBubble.js";
 import StutterCard from "../../components/StutterCard.js";
 
 const FeedbackPage = () => {
+  const [infoUrl, setInfoUrl] = useState(null);
+  const simulationIdParams = 1; // 선수 백엔드 api 적용 안 되어서, 정보 출력확인을 위해 임시로 하드코딩
+  
+  useEffect(() => {
+    let headers = new Headers({
+      "Authorization": `Bearer ${localStorage.getItem('accessToken')}`,
+      'Content-Type': 'application/json',
+    });
+    let options = {
+      method: 'GET',
+      headers
+    }
+    fetch(API_BASE_URL + `/api/v1/simulations/${simulationIdParams}/info`, options).then((res) => {
+      console.log(res);
+    });
+  }, []);
+  
   const navigate = useNavigate();
   const checkBtn = () => {
     navigate('/');
