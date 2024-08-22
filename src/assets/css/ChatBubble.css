@@ -1,0 +1,15 @@
+.bubble {
+  max-width: 300px;
+  padding:6px;
+}
+
+.bubble-1st {
+  background-color: #ffdf2c4b;
+  color: #000;
+  border-radius: 10px 10px 10px 0px;
+}
+.bubble-2nd {
+  background-color: #acd3ff4f;
+  color: #000;
+  border-radius: 10px 0px 10px 10px;
+}
