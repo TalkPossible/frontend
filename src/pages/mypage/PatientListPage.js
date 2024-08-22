@@ -24,13 +24,13 @@ const PatientListPage = () => {
         }
 
         const data = await response.json();
-        setPatients(data.patients); 
+        setPatients(data.patients); // API에서 받은 환자 데이터를 상태로 설정
       } catch (error) {
         console.error('Error fetching patients:', error);
       }
     };
 
-    fetchPatients(); 
+    fetchPatients(); // 컴포넌트 마운트 시 API 호출
   }, []);
 
   const handleRowClick = (patient) => {
@@ -63,14 +63,14 @@ const PatientListPage = () => {
             <button
               className={`action-button ${selectedPatient ? 'active' : ''}`}
               onClick={handleSimulationStartClick}
-              disabled={!selectedPatient}
+              disabled={!selectedPatient} // 환자 선택 전에는 비활성화
             >
               시뮬레이션 시작
             </button>
             <button
               className={`action-button ${selectedPatient ? 'active' : ''}`}
               onClick={handleSimulationListClick}
-              disabled={!selectedPatient}
+              disabled={!selectedPatient} // 환자 선택 전에는 비활성화
             >
               진단 목록
             </button>
