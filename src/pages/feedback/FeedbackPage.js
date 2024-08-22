@@ -23,10 +23,20 @@ const FeedbackPage = () => {
       method: 'GET',
       headers
     }
-    fetch(API_BASE_URL + `/api/v1/simulations/${simulationIdParams}/info`, options).then((res) => {
-      console.log(res);
+    fetch(API_BASE_URL + `/api/v1/simulations/${simulationIdParams}/info`, options)
+    .then((res) => {
+      if(!res.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return res.json();
+    })
+    .then((data) => {
+      setInfoUrl(data);
+    })
+    .catch((error) => {
+      console.error('There was a problem with the fetch operation:', error);
     });
-  }, []);
+  }, [simulationIdParams]);
   
   const navigate = useNavigate();
   const checkBtn = () => {
@@ -136,10 +146,10 @@ const FeedbackPage = () => {
         
         <div className="fd-main">
           <div className="fd-title">
-            <p className="ttl-name">정재현</p>
+            <p className="ttl-name">{infoUrl.patientName}</p>
             <div className="ttl-info">
-              <p><span>레스토랑</span></p>
-              <p><span>2024년 6월 24일</span></p>
+              <p><span>{infoUrl.situation}</span></p>
+              <p><span>{infoUrl.runDate}</span></p>
             </div>
           </div>
 
@@ -162,15 +172,15 @@ const FeedbackPage = () => {
               <div className="info-box">
                 <div className="sub-container">
                   <p className="sub-title">전체 시간</p>
-                  <p className="sub-value">3분 42초</p>
+                  <p className="sub-value">{infoUrl.totalTime}</p>
                 </div>
                 <div className="sub-container">
                   <p className="sub-title">분당 어절수</p>
-                  <p className="sub-value">210어절/1분</p>
+                  <p className="sub-value">{infoUrl.wordsPerMin}어절/1분</p>
                 </div>
                 <div className="sub-container">
                   <p className="sub-title">모션 감지 횟수</p>
-                  <p className="sub-value">{motionDataList[1]["motionCount"]}번</p>
+                  <p className="sub-value">@여기 수정 필요@번</p>
                 </div>
               </div>
             </div>
