@@ -1,18 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom'; // useNavigate 훅을 추가
 import './PatientDetailPage.css';
 import Header from '../../components/Header';
 
-const patients = Array.from({ length: 20 }, (_, i) => ({
-  id: i + 1,
-  name: `환자 ${i + 1}`,
-  dob: `1990-01-${String(i + 1).padStart(2, '0')}`
-}));
-
 const PatientDetailPage = () => {
+  const [patients, setPatients] = useState([]); // 환자 목록을 관리할 상태 추가
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const navigate = useNavigate(); 
+
+  useEffect(() => {
+    const fetchPatients = async () => {
+      try {
+        const response = await fetch('/api/v1/mypage/patients', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch patients');
+        }
+
+        const data = await response.json();
+        setPatients(data.patients); 
+      } catch (error) {
+        console.error('Error fetching patients:', error);
+      }
+    };
+
+    fetchPatients(); 
+  }, []); 
 
   const handleRowClick = (patient) => {
     setSelectedPatient(patient);
@@ -25,7 +43,7 @@ const PatientDetailPage = () => {
   };
 
   const handleSelectSituation = () => {
-    localStorage.setItem('patientId', selectedPatient.id);
+    localStorage.setItem('patientId', selectedPatient.patientId);
     navigate('/theme'); 
   };
 
@@ -48,13 +66,13 @@ const PatientDetailPage = () => {
             <tbody>
               {patients.map((patient) => (
                 <tr
-                  key={patient.id}
+                  key={patient.patientId}
                   className={selectedPatient === patient ? 'selected' : ''}
                   onClick={() => handleRowClick(patient)}
                 >
-                  <td>{patient.id}</td>
+                  <td>{patient.patientId}</td>
                   <td>{patient.name}</td>
-                  <td>{patient.dob}</td>
+                  <td>{patient.birth}</td>
                 </tr>
               ))}
             </tbody>
@@ -62,14 +80,15 @@ const PatientDetailPage = () => {
         </div>
       </div>
 
-      {isPopupOpen && (
+      {isPopupOpen && selectedPatient && (
         <div className="popup-overlay">
           <div className="popup">
             <button className="close-button" onClick={handleClosePopup}>X</button>
             <div className="popup-content">
               <h2>환자 정보</h2>
-              <p>ID: {selectedPatient.id}</p>
+              <p>ID: {selectedPatient.patientId}</p>
               <p>이름: {selectedPatient.name}</p>
+              <p>생년월일: {selectedPatient.birth}</p>
               <button className="action-button active" onClick={handleSelectSituation}>상황 선택하기</button> 
             </div>
           </div>
