@@ -19,7 +19,8 @@ import {
 
 const FeedbackPage = () => {
   const [infoUrl, setInfoUrl] = useState(null);
-  const simulationIdParams = 1; // 선수 백엔드 api 적용 안 되어서, 정보 출력확인을 위해 임시로 하드코딩
+  const [conversationList, setConversationList] = useState(null);
+  const simulationIdParams = 16; // 선수 백엔드 api 적용 안 되어서, 정보 출력확인을 위해 임시로 하드코딩
   
   useEffect(() => {
     let headers = new Headers({
@@ -30,6 +31,8 @@ const FeedbackPage = () => {
       method: 'GET',
       headers
     }
+    
+    // 시뮬 정보 & 영상 api 호출
     fetch(API_BASE_URL + `/api/v1/simulations/${simulationIdParams}/info`, options)
     .then((res) => {
       if(!res.ok) {
@@ -39,6 +42,20 @@ const FeedbackPage = () => {
     })
     .then((data) => {
       setInfoUrl(data);
+    })
+    .catch((error) => {
+      console.error('There was a problem with the fetch operation:', error);
+    });
+    // 대화 내용 api 호출
+    fetch(API_BASE_URL + `/api/v1/simulations/${simulationIdParams}/conversation`, options)
+    .then((res) => {
+      if(!res.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return res.json();
+    })
+    .then((data) => {
+      setConversationList(data.conversationList);
     })
     .catch((error) => {
       console.error('There was a problem with the fetch operation:', error);
@@ -216,14 +233,14 @@ const FeedbackPage = () => {
             </div>
 
             <div className="part-rest part-scroll">
-            {conversationList.map((txt, index) => (
+            {/* {conversationList.map((txt, index) => (
               <div key={index} style={{display: 'flex', justifyContent: txt.speaker === 'chatgpt' ? 'flex-start' : 'flex-end', 
               width: '100%', marginBottom: '10px'}}>
                 {txt.speaker === 'chatgpt' ? 
                   <LeftBubble key={index}>{txt.content}</LeftBubble> :  
                   <RightBubble key={index}>{txt.content}</RightBubble>}
               </div>
-            ))}
+            ))} */}
             </div>
           </div>
 
