@@ -39,23 +39,23 @@ export const TxtRecProvider = ({ children }) => {
     startRecording(handleResult, console.error); // azure stt
   };
 
-  const handleStopRecording = () => {
+  const handleStopRecording = async () => {
     setRecording(false);
     setUserMicDis(true); // 사용자 마이크 비활성화
 
     stopRecording();  // 음성 녹음 중지
     offRecAudio(stream, media, analyser, source, setOnRec); // 녹음 파일 azure storage에 업로드 및 파일 이름 list화 작업 
 
-    console.log("userText : ", userText); 
-    if (userText !== "") { // 백엔드 api 호출 : 1. 사용자 텍스트 전송 호출
-      userMessageSaveAPI(userText);
-    }
-    gptAPI(userText, cacheId).then(newRes => { // 백엔드 api 호출 : 2. gpt와 대화하기 호출
+    try {
+      if (userText !== "") { 
+        await userMessageSaveAPI(userText); // 백엔드 api 호출 : 1. 사용자 텍스트 전송 호출
+      } 
+      const newRes = await gptAPI(userText, cacheId) // 백엔드 api 호출 : 2. gpt와 대화하기 호출
       setCacheId(newRes.newCacheId);
       setContent(newRes.newContent);
-    }).catch(error => {
+    } catch (error) {
       console.log('Error calling GPT API or TTS API: ', error);
-    });
+    }
   };
 
   useEffect(() => {
