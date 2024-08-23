@@ -15,6 +15,7 @@ const FeedbackPage = () => {
   const [infoUrl, setInfoUrl] = useState(null);
   const [conversationList, setConversationList] = useState(null);
   const [stutterList, setStutterList] = useState(null);
+  const [motionList, setMotionList] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const simulationIdParams = 16; // 선수 백엔드 api 적용 안 되어서, 정보 출력확인을 위해 임시로 하드코딩
 
@@ -82,6 +83,20 @@ const FeedbackPage = () => {
     })
     .then((data) => {
       setStutterList(data.stutterList);
+    })
+    .catch((error) => {
+      console.error('There was a problem with the fetch operation:', error);
+    });
+    // 동작인식 api 호출
+    fetch(API_BASE_URL + `/api/v1/simulations/${simulationIdParams}/motion`, options)
+    .then((res) => {
+      if(!res.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return res.json();
+    })
+    .then((data) => {
+      setMotionList(data.motionList);
     })
     .catch((error) => {
       console.error('There was a problem with the fetch operation:', error);
