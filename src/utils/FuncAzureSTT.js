@@ -20,7 +20,7 @@ export const startRecording = (onResult, onError) => {
 
   recognizer.recognized = (s, e) => {
     if (e.result.reason === SpeechSDK.ResultReason.RecognizedSpeech) {
-      // console.log(`RECOGNIZED Text => ${e.result.text}`);
+      console.log(`RECOGNIZED Text => ${e.result.text}`);
       onResult(e.result.text);
     } else if (e.result.reason === SpeechSDK.ResultReason.NoMatch) {
       // console.log('NOMATCH: Speech could not be recognized.');
