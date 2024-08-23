@@ -5,7 +5,6 @@ import { API_BASE_URL } from "../../api/apiConfig.js";
 import './FeedbackPage.css';
 
 import Header from "../../components/Header.js";
-import { motionDataList } from "./feedbackData.js";
 import { LeftBubble, RightBubble } from "../../components/ChatBubble.js";
 import StutterCard from "../../components/StutterCard.js";
 import { FdMainSkeleton, FdMenuListSkeleton, FdMenuConversationSkeleton,
@@ -291,17 +290,19 @@ const FeedbackPage = () => {
             </div> : <FdMenuVoiceSkeleton/>
           }
 
-          <div className="fd-menu menu-motion" ref={menuMotion}>
-            <div className="menu-detail-header">
-              <div className="header-title">동작 분석</div> <button onClick={toMenuListClicked}>&times;</button>
-            </div>
-            
-            <div className="part-rest part-scroll ">
-              {motionDataList[0]["motionList"].map((motion, index) => (
-                <p key={index} className="motion"><span>{motion.timestamp}</span> <span>{motion.motionName}</span></p>
-              ))}
-            </div>
-          </div>
+          {motionList ? 
+            <div className="fd-menu menu-motion" ref={menuMotion}>
+              <div className="menu-detail-header">
+                <div className="header-title">동작 분석</div> <button onClick={toMenuListClicked}>&times;</button>
+              </div>
+              
+              <div className="part-rest part-scroll ">
+                {motionList.map((motion, index) => (
+                  <p key={index} className="motion"><span>{motion.timestamp}</span> <span>{motion.motionName}</span></p>
+                ))}
+              </div>
+            </div> : <FdMenuMotionSkeleton/>
+          }
         </div>
 
       </div>
