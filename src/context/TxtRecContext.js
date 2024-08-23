@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import { startRecording, stopRecording } from '../utils/FuncAzureSTT.js';
 import { onRecAudio, offRecAudio, onSubmitAudioFile } from '../utils/FuncRecordUpload.js';
+import { userMessageSaveAPI } from '../service/ApiService.js';
 
 const TxtRecContext = createContext();
 
@@ -29,7 +30,7 @@ export const TxtRecProvider = ({ children }) => {
   const handleStartRecording = () => {
     setRecording(true);
     setFullScript('');
-    onRecAudio(setStream, setMedia, setOnRec, setSource, setAnalyser, setAudioUrl); // 음성 녹음
+    onRecAudio(setStream, setMedia, setOnRec, setSource, setAnalyser, setAudioUrl); // 음성 녹음 시작
     startRecording(handleResult, console.error); // azure stt
   };
 
@@ -37,9 +38,14 @@ export const TxtRecProvider = ({ children }) => {
     setRecording(false);
     setUserMicDis(true); // 사용자 마이크 비활성화
     setUserTermMessage(fullScript);
-    console.log("user term message : ", fullScript); // 백 api 호출해서 텍스트 보낼 부분
-    stopRecording();
-    offRecAudio(stream, media, analyser, source, setOnRec);
+
+    console.log("fullScript : ", fullScript); // 백엔드 api 호출 : 사용자 텍스트 전송
+    if (userTermMessage !== "") {
+      userMessageSaveAPI(userTermMessage);
+    }
+
+    stopRecording();  // 음성 녹음 중지
+    offRecAudio(stream, media, analyser, source, setOnRec); // 녹음 파일 azure storage에 업로드 및 파일 이름 list화 작업 
   };
 
   useEffect(() => {
