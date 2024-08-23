@@ -1,28 +1,39 @@
 import React, { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
-import Header from "../../components/Header";
 import { API_BASE_URL } from "../../api/apiConfig.js";
 
 import './FeedbackPage.css';
 
-import {motionDataList, stuttered} from "./feedbackData.js";
+import Header from "../../components/Header.js";
+import { motionDataList } from "./feedbackData.js";
 import { LeftBubble, RightBubble } from "../../components/ChatBubble.js";
 import StutterCard from "../../components/StutterCard.js";
-import {
-  FdMainSkeleton,
-  FdMenuListSkeleton,
-  FdMenuConversationSkeleton,
-  FdMenuVoiceSkeleton,
-  FdMenuMotionSkeleton,
-} from './FeedbackSkeleton.js';
+import { FdMainSkeleton, FdMenuListSkeleton, FdMenuConversationSkeleton,
+  FdMenuVoiceSkeleton, FdMenuMotionSkeleton } from './FeedbackSkeleton.js';
 
 const FeedbackPage = () => {
   const [infoUrl, setInfoUrl] = useState(null);
   const [conversationList, setConversationList] = useState(null);
   const [stutterList, setStutterList] = useState(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const simulationIdParams = 16; // 선수 백엔드 api 적용 안 되어서, 정보 출력확인을 위해 임시로 하드코딩
+
+  const handleNext = () => {
+    if (stutterList && stutterList.length > 0) {
+      setCurrentIndex((prevIndex) =>
+        prevIndex === stutterList.length - 1 ? 0 : prevIndex + 1
+      );
+    }
+  };
   
+  const handlePrev = () => {
+    if (stutterList && stutterList.length > 0) {
+      setCurrentIndex((prevIndex) =>
+        prevIndex === 0 ? stutterList.length - 1 : prevIndex - 1
+      );
+    }
+  };
+
   useEffect(() => {
     let headers = new Headers({
       "Authorization": `Bearer ${localStorage.getItem('accessToken')}`,
@@ -164,19 +175,6 @@ const FeedbackPage = () => {
     }, 500);
   };
 
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const handleNext = () => {
-    setCurrentIndex((prevIndex) =>
-      prevIndex === stuttered.length - 1 ? 0 : prevIndex + 1
-    );
-  };
-  const handlePrev = () => {
-    setCurrentIndex((prevIndex) =>
-      prevIndex === 0 ? stuttered.length - 1 : prevIndex - 1
-    );
-  };
-  const currentResult = stuttered[currentIndex];
-
   return (
     <>
       <Header/>
@@ -261,21 +259,22 @@ const FeedbackPage = () => {
             </div> : <FdMenuConversationSkeleton/>
           }
           
+          {stutterList ?
+            <div className="fd-menu menu-voice" ref={menuVoice}>
+              <div className="menu-detail-header">
+                <div className="header-title">말더듬 분석</div> <button onClick={toMenuListClicked}>&times;</button>
+              </div>
 
-          <div className="fd-menu menu-voice" ref={menuVoice}>
-            <div className="menu-detail-header">
-              <div className="header-title">말더듬 분석</div> <button onClick={toMenuListClicked}>&times;</button>
-            </div>
+              <div className="part-rest">
+                <StutterCard currentResult={stutterList[currentIndex]}></StutterCard>
+              </div>
 
-            <div className="part-rest">
-              <StutterCard stuttered={currentResult}></StutterCard>
-            </div>
-
-            <div className="btn-pn" >
-              <button onClick={handlePrev} style={{ fontSize: '16px' }}>Prev</button>
-              <button onClick={handleNext} style={{ fontSize: '16px' }}>Next</button>
-            </div>
-          </div>
+              <div className="btn-pn" >
+                <button onClick={handlePrev} style={{ fontSize: '16px' }}>Prev</button>
+                <button onClick={handleNext} style={{ fontSize: '16px' }}>Next</button>
+              </div>
+            </div> : <FdMenuVoiceSkeleton/>
+          }
 
           <div className="fd-menu menu-motion" ref={menuMotion}>
             <div className="menu-detail-header">
