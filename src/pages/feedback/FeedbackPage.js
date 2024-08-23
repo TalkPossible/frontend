@@ -6,7 +6,7 @@ import { API_BASE_URL } from "../../api/apiConfig.js";
 
 import './FeedbackPage.css';
 
-import {conversationList, motionDataList, stuttered} from "./feedbackData.js";
+import {motionDataList, stuttered} from "./feedbackData.js";
 import { LeftBubble, RightBubble } from "../../components/ChatBubble.js";
 import StutterCard from "../../components/StutterCard.js";
 import {
@@ -227,22 +227,25 @@ const FeedbackPage = () => {
             </div> : <FdMenuListSkeleton />
           }
 
-          <div className="fd-menu menu-conversation" ref={menuConversation}>
-            <div className="menu-detail-header">
-              <div className="header-title">대화 내용</div> <button onClick={toMenuListClicked}>&times;</button>
-            </div>
-
-            <div className="part-rest part-scroll">
-            {/* {conversationList.map((txt, index) => (
-              <div key={index} style={{display: 'flex', justifyContent: txt.speaker === 'chatgpt' ? 'flex-start' : 'flex-end', 
-              width: '100%', marginBottom: '10px'}}>
-                {txt.speaker === 'chatgpt' ? 
-                  <LeftBubble key={index}>{txt.content}</LeftBubble> :  
-                  <RightBubble key={index}>{txt.content}</RightBubble>}
+          {conversationList ? 
+            <div className="fd-menu menu-conversation" ref={menuConversation}>
+              <div className="menu-detail-header">
+                <div className="header-title">대화 내용</div> <button onClick={toMenuListClicked}>&times;</button>
               </div>
-            ))} */}
-            </div>
-          </div>
+
+              <div className="part-rest part-scroll">
+                {conversationList.map((cnv, index) => (
+                  <div key={index} style={{display: 'flex', justifyContent: cnv.speaker === 'chatgpt' ? 'flex-start' : 'flex-end', 
+                  width: '100%', marginBottom: '10px'}}>
+                    {cnv.speaker === 'chatgpt' ? 
+                      <LeftBubble key={index}>{cnv.content}</LeftBubble> :  
+                      <RightBubble key={index}>{cnv.content}</RightBubble>}
+                  </div>
+                ))}
+              </div>
+            </div> : <FdMenuConversationSkeleton/>
+          }
+          
 
           <div className="fd-menu menu-voice" ref={menuVoice}>
             <div className="menu-detail-header">
