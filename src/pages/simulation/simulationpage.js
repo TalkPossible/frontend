@@ -6,8 +6,7 @@ import conversationImage from '../../assets/images/simultest.jpg';
 
 import './simulationpage.css';
 
-import {gptAPI} from "../../service/ApiService.js";
-import {ttsAPI} from "../../utils/FuncGoogleTTS.js";
+import { gptAPI } from "../../service/ApiService.js";
 import { useTxtRec } from '../../context/TxtRecContext.js';
 
 // AWS S3 설정 함수
@@ -57,10 +56,8 @@ const SimulationPage = () => {
 
   const navigate = useNavigate();
 
-  const [cacheId, setCacheId] = useState(null); // gpt의 cacheId
-  const [content, setContent] = useState(""); // gpt의 답변
-
-  const { setUserMicDis, userMicDis, userTermMessage, recording, handleStartRecording, handleStopRecording } = useTxtRec();
+  const { fileNames, userMicDis, setCacheId, setContent, 
+    recording, handleStartRecording, handleStopRecording } = useTxtRec();
 
   const recordButton = useRef(null);
 
@@ -73,29 +70,6 @@ const SimulationPage = () => {
       }
     }
   }, [userMicDis]);
-
-  useEffect(() => {
-    if (started) {
-      // started가 true이고, userTermMessage가 변경되면 gptAPI 호출
-      gptAPI(userTermMessage, cacheId).then(newResponse => {
-        setCacheId(newResponse.newCacheId);
-        setContent(newResponse.newContent);
-      }).catch(error => {
-        console.log('Error calling GPT API or TTS API: ', error);
-      });
-    } else {
-      window.speechSynthesis.cancel();  
-    }
-  },[userTermMessage, started]); 
-
-  useEffect(() => {
-    if (content !== "") {
-      // content가 변경되면 ttsAPI 호출
-      if (started === true && content !== "" && cacheId !== null) {
-        ttsAPI(content, setUserMicDis);
-      };
-    };
-  }, [started, cacheId, content]);
 
   const startSimulation = async () => {
     if (started) return; // 이미 시작된 경우 중복 호출 방지
@@ -140,6 +114,14 @@ const SimulationPage = () => {
 
       recorder.start();
       setStarted(true);
+      
+      // 백엔드 api 호출 : gpt와 대화하기 : gpt의 답변을 먼저 받기 위해 started==true일 때 빈 문자열을 보냄 (처음 한번만 실행)
+      gptAPI("", null).then(newResponse => {
+        setCacheId(newResponse.newCacheId);
+        setContent(newResponse.newContent);
+      }).catch(error => {
+        console.log('Error calling GPT API or TTS API: ', error);
+      });
     } catch (error) {
       if (error.name === "NotReadableError") {
         console.error("웹캠 접근 오류: 다른 애플리케이션이 웹캠을 사용 중이거나 리소스 문제로 인해 접근할 수 없습니다.");
@@ -151,6 +133,7 @@ const SimulationPage = () => {
 
   const stopSimulation = () => {
     if (mediaRecorder && mediaRecorder.state !== "inactive") {
+      console.log("[상황종료] 파일명 리스트 : ", fileNames);
       mediaRecorder.stop();
       navigate('/');
     } else {

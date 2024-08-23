@@ -41,25 +41,23 @@ const rmvServer = (str) => {
 
 // gpt api 호출
 export function gptAPI (message, cacheId) {
-
   let headers = new Headers({
-    "simulationId": parseInt(localStorage.getItem('simulationId')),
+    "simulationId": localStorage.getItem('simulationId'),
     "Authorization": `Bearer ${localStorage.getItem('accessToken')}`,
     "Content-Type": "application/json",
   });
 
-  // Headers 확인용
-  console.log(Object.fromEntries(headers.entries()));
+  let body = JSON.stringify({
+    "message": message,
+    "cacheId": cacheId,
+  })
 
   let options = {
-    headers,
     url: API_BASE_URL + "/api/v1/chatGPT/remember",
-    method: "POST",
-    message,
-    cacheId
+    headers,
+    method: 'POST',
+    body
   };
-
-  console.log(options)
 
   return fetch(options.url, options).then((response) => {
     if(response.status === 200) {
@@ -82,3 +80,39 @@ export function gptAPI (message, cacheId) {
     console.log('[Error calling GPT API]', error);
   });
 };
+
+// 사용자 대화 내용 저장 api 호출
+export function userMessageSaveAPI (content) {
+  let simulationId = localStorage.getItem('simulationId');
+
+  let headers = new Headers({
+    "patientId": localStorage.getItem('patientId'),
+    "Authorization": `Bearer ${localStorage.getItem('accessToken')}`,
+    "Content-Type": "application/json",
+  });
+
+  let body = JSON.stringify({
+    "content": content,
+  })
+
+  let options = {
+    url: API_BASE_URL + `/api/v1/simulations/${simulationId}`,
+    headers,
+    method: 'POST',
+    body
+  };
+
+  return fetch(options.url, options).then((response) => {
+    if(response.status === 200) {
+      console.log("userMessageSaveAPI : ", content);
+      return ;
+    } else if(response.status === 403){
+      window.location.href = "/login";
+    } else {
+      Promise.reject(response);
+      throw Error(response);
+    }
+  }).catch((error) => {
+    console.log("[http error]", error);
+  });
+}
