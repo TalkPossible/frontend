@@ -9,6 +9,13 @@ import './FeedbackPage.css';
 import {conversationList, motionDataList, stuttered} from "./feedbackData.js";
 import { LeftBubble, RightBubble } from "../../components/ChatBubble.js";
 import StutterCard from "../../components/StutterCard.js";
+import {
+  FdMainSkeleton,
+  FdMenuListSkeleton,
+  FdMenuConversationSkeleton,
+  FdMenuVoiceSkeleton,
+  FdMenuMotionSkeleton,
+} from './FeedbackSkeleton.js';
 
 const FeedbackPage = () => {
   const [infoUrl, setInfoUrl] = useState(null);
@@ -144,14 +151,15 @@ const FeedbackPage = () => {
 
       <div className="feedback">
         
-        <div className="fd-main">
-          <div className="fd-title">
-            <p className="ttl-name">{infoUrl.patientName}</p>
-            <div className="ttl-info">
-              <p><span>{infoUrl.situation}</span></p>
-              <p><span>{infoUrl.runDate}</span></p>
+        {infoUrl ? 
+          <div className="fd-main">
+            <div className="fd-title">
+              <p className="ttl-name">{infoUrl.patientName}</p>
+              <div className="ttl-info">
+                <p><span>{infoUrl.situation}</span></p>
+                <p><span>{infoUrl.runDate}</span></p>
+              </div>
             </div>
-          </div>
 
             <div className="fd-video">
               <iframe title="cam video player"
@@ -162,41 +170,45 @@ const FeedbackPage = () => {
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                 allowFullScreen>
               </iframe>
-        </div>
+            </div>
+          </div> : <FdMainSkeleton />
+        }
 
         <div>
-          <div className="fd-menu menu-list" ref={menuList}>
-            <div className="sub-menu">
-              <p className="header-title">menu</p>
-              <div className="menu-box">
-                <div onClick={conversationClicked}><p>대화 내용</p></div>
-                <div onClick={voiceClicked}><p>음성 피드백</p></div>
-                <div onClick={motionClicked}><p>행동 피드백</p></div>
-              </div>
-            </div>
-
-            <div className="sub-info">
-              <p className="header-title">info</p>
-              <div className="info-box">
-                <div className="sub-container">
-                  <p className="sub-title">전체 시간</p>
-                  <p className="sub-value">{infoUrl.totalTime}</p>
-                </div>
-                <div className="sub-container">
-                  <p className="sub-title">분당 어절수</p>
-                  <p className="sub-value">{infoUrl.wordsPerMin}어절/1분</p>
-                </div>
-                <div className="sub-container">
-                  <p className="sub-title">모션 감지 횟수</p>
-                  <p className="sub-value">@여기 수정 필요@번</p>
+          {infoUrl ? 
+            <div className="fd-menu menu-list" ref={menuList}>
+              <div className="sub-menu">
+                <p className="header-title">menu</p>
+                <div className="menu-box">
+                  <div onClick={conversationClicked}><p>대화 내용</p></div>
+                  <div onClick={voiceClicked}><p>음성 피드백</p></div>
+                  <div onClick={motionClicked}><p>행동 피드백</p></div>
                 </div>
               </div>
-            </div>
 
-            <div className="menu-footer">
-              <button className="fd-confirmBtn" onClick={checkBtn}>확인완료</button>
-            </div>
-          </div>
+              <div className="sub-info">
+                <p className="header-title">info</p>
+                <div className="info-box">
+                  <div className="sub-container">
+                    <p className="sub-title">전체 시간</p>
+                    <p className="sub-value">{infoUrl.totalTime}</p>
+                  </div>
+                  <div className="sub-container">
+                    <p className="sub-title">분당 어절수</p>
+                    <p className="sub-value">{infoUrl.wordsPerMin}어절/1분</p>
+                  </div>
+                  <div className="sub-container">
+                    <p className="sub-title">모션 감지 횟수</p>
+                    <p className="sub-value">@여기 수정 필요@번</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="menu-footer">
+                <button className="fd-confirmBtn" onClick={checkBtn}>확인완료</button>
+              </div>
+            </div> : <FdMenuListSkeleton />
+          }
 
           <div className="fd-menu menu-conversation" ref={menuConversation}>
             <div className="menu-detail-header">
