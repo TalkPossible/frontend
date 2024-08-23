@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom'; // useNavigate 훅을 추가
+import { useNavigate } from 'react-router-dom';
 import './PatientDetailPage.css';
 import Header from '../../components/Header';
 
 const PatientDetailPage = () => {
-  const [patients, setPatients] = useState([]); // 환자 목록을 관리할 상태 추가
+  const [patients, setPatients] = useState([]);
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const navigate = useNavigate(); 
@@ -12,20 +12,30 @@ const PatientDetailPage = () => {
   useEffect(() => {
     const fetchPatients = async () => {
       try {
-        const response = await fetch('/api/v1/mypage/patients', {
+        const response = await fetch('https://talkpossible.site/api/v1/mypage/patients', {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
           }
         });
 
         if (!response.ok) {
-          throw new Error('Failed to fetch patients');
+          const text = await response.text();
+          console.log('Received non-JSON response:', text);
+          throw new Error(`Failed to fetch patients: ${response.status} ${response.statusText}`);
+        }
+
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          throw new TypeError("Received content is not JSON");
         }
 
         const data = await response.json();
+        console.log('Fetched data:', data); //data 출력 확인용
         setPatients(data.patients); 
       } catch (error) {
-        console.error('Error fetching patients:', error);
+        console.error('Error fetching patients:', error.message);
       }
     };
 
@@ -64,17 +74,23 @@ const PatientDetailPage = () => {
               </tr>
             </thead>
             <tbody>
-              {patients.map((patient) => (
-                <tr
-                  key={patient.patientId}
-                  className={selectedPatient === patient ? 'selected' : ''}
-                  onClick={() => handleRowClick(patient)}
-                >
-                  <td>{patient.patientId}</td>
-                  <td>{patient.name}</td>
-                  <td>{patient.birth}</td>
+              {patients.length > 0 ? (
+                patients.map((patient) => (
+                  <tr
+                    key={patient.patientId}
+                    className={selectedPatient === patient ? 'selected' : ''}
+                    onClick={() => handleRowClick(patient)}
+                  >
+                    <td>{patient.patientId}</td>
+                    <td>{patient.name}</td>
+                    <td>{patient.birth === "null" ? '' : patient.birth}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="3">No patients found</td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
@@ -88,7 +104,7 @@ const PatientDetailPage = () => {
               <h2>환자 정보</h2>
               <p>ID: {selectedPatient.patientId}</p>
               <p>이름: {selectedPatient.name}</p>
-              <p>생년월일: {selectedPatient.birth}</p>
+              <p>생년월일: {selectedPatient.birth === "null" ? '' : selectedPatient.birth}</p>
               <button className="action-button active" onClick={handleSelectSituation}>상황 선택하기</button> 
             </div>
           </div>
