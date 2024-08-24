@@ -12,7 +12,7 @@ const PatientListPage = () => {
   useEffect(() => {
     const fetchPatients = async () => {
       try {
-        const response = await fetch('/api/v1/mypage/patients', {
+        const response = await fetch('https://talkpossible.site/api/v1/mypage/patients', {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
