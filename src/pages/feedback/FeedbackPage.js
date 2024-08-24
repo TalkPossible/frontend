@@ -243,7 +243,7 @@ const FeedbackPage = () => {
                   </div>
                   <div className="sub-container">
                     <p className="sub-title">모션 감지 횟수</p>
-                    <p className="sub-value">@여기 수정 필요@번</p>
+                    <p className="sub-value">{infoUrl.motionCount}번</p>
                   </div>
                 </div>
               </div>
