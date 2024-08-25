@@ -22,7 +22,7 @@ const Card = ({Data, setModalOpen, setSelected, index}) => {
       <div className="card-info" >
         <div className="inner" >
           <p className="info-title" >{Data.title}</p>
-          <p className="info-desc" >{Data.description}</p>
+          <p className="info-desc" >{Data.intro}</p>
         </div>
       </div>
     </div>
