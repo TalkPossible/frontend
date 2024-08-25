@@ -46,6 +46,7 @@ const PatientListPage = () => {
 
   const handleClosePopup = () => {
     setIsPopupOpen(false);
+    navigate("/theme");
   };
 
   const handleSimulationListClick = () => {
