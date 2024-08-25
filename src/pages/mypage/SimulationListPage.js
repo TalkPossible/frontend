@@ -42,8 +42,7 @@ const SimulationListPage = () => {
   }
 
   const handleFeedbackClick = (simulationId) => {
-    console.log(`/feedback/${simulationId}`);
-    // navigate(`/feedback/${simulationId}`);
+    navigate(`/feedback/${simulationId}`);
   }
   
   return (

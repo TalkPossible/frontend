@@ -26,11 +26,10 @@ const Routers = () => {
         <Route path="/" element={<LandingPage />} />
         <Route path="/theme" element={<ThemePage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/feedback" element={<FeedbackPage />} />
         <Route path="/patients" element={<PatientListPage />} />
         <Route path="/patients/:id" element={<SimulationListPage />} />
         <Route path="/patientsdetail" element={<PatientDetailPage />} />
-        {/* <Route path="/feedback/:id" element={< />} /> */}
+        <Route path="/feedback/:id" element={<FeedbackPage />} />
       </Routes>
     </BrowserRouter>
   );
