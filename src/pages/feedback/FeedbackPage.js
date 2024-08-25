@@ -5,7 +5,6 @@ import { API_BASE_URL } from "../../api/apiConfig.js";
 import './FeedbackPage.css';
 
 import Header from "../../components/Header.js";
-import { motionDataList } from "./feedbackData.js";
 import { LeftBubble, RightBubble } from "../../components/ChatBubble.js";
 import StutterCard from "../../components/StutterCard.js";
 import { FdMainSkeleton, FdMenuListSkeleton, FdMenuConversationSkeleton,
@@ -15,6 +14,7 @@ const FeedbackPage = () => {
   const [infoUrl, setInfoUrl] = useState(null);
   const [conversationList, setConversationList] = useState(null);
   const [stutterList, setStutterList] = useState(null);
+  const [motionList, setMotionList] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const simulationIdParams = 16; // 선수 백엔드 api 적용 안 되어서, 정보 출력확인을 위해 임시로 하드코딩
 
@@ -82,6 +82,20 @@ const FeedbackPage = () => {
     })
     .then((data) => {
       setStutterList(data.stutterList);
+    })
+    .catch((error) => {
+      console.error('There was a problem with the fetch operation:', error);
+    });
+    // 동작인식 api 호출
+    fetch(API_BASE_URL + `/api/v1/simulations/${simulationIdParams}/motion`, options)
+    .then((res) => {
+      if(!res.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return res.json();
+    })
+    .then((data) => {
+      setMotionList(data.motionList);
     })
     .catch((error) => {
       console.error('There was a problem with the fetch operation:', error);
@@ -229,7 +243,7 @@ const FeedbackPage = () => {
                   </div>
                   <div className="sub-container">
                     <p className="sub-title">모션 감지 횟수</p>
-                    <p className="sub-value">@여기 수정 필요@번</p>
+                    <p className="sub-value">{infoUrl.motionCount}번</p>
                   </div>
                 </div>
               </div>
@@ -276,17 +290,19 @@ const FeedbackPage = () => {
             </div> : <FdMenuVoiceSkeleton/>
           }
 
-          <div className="fd-menu menu-motion" ref={menuMotion}>
-            <div className="menu-detail-header">
-              <div className="header-title">동작 분석</div> <button onClick={toMenuListClicked}>&times;</button>
-            </div>
-            
-            <div className="part-rest part-scroll ">
-              {motionDataList[0]["motionList"].map((motion, index) => (
-                <p key={index} className="motion"><span>{motion.timestamp}</span> <span>{motion.motionName}</span></p>
-              ))}
-            </div>
-          </div>
+          {motionList ? 
+            <div className="fd-menu menu-motion" ref={menuMotion}>
+              <div className="menu-detail-header">
+                <div className="header-title">동작 분석</div> <button onClick={toMenuListClicked}>&times;</button>
+              </div>
+              
+              <div className="part-rest part-scroll ">
+                {motionList.map((motion, index) => (
+                  <p key={index} className="motion"><span>{motion.timestamp}</span> <span>{motion.motionName}</span></p>
+                ))}
+              </div>
+            </div> : <FdMenuMotionSkeleton/>
+          }
         </div>
 
       </div>
