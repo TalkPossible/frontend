@@ -29,7 +29,7 @@ const Routers = () => {
         <Route path="/patients" element={<PatientListPage />} />
         <Route path="/patients/:id" element={<SimulationListPage />} />
         <Route path="/patientsdetail" element={<PatientDetailPage />} />
-        <Route path="/feedback/:id" element={<FeedbackPage />} />
+        <Route path="/feedback/:simId" element={<FeedbackPage />} />
       </Routes>
     </BrowserRouter>
   );

@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "../../api/apiConfig.js";
 
 import './FeedbackPage.css';
@@ -11,12 +11,13 @@ import { FdMainSkeleton, FdMenuListSkeleton, FdMenuConversationSkeleton,
   FdMenuVoiceSkeleton, FdMenuMotionSkeleton } from './FeedbackSkeleton.js';
 
 const FeedbackPage = () => {
+  const { simId } = useParams();
+  const pntId = localStorage.getItem("patientId");
   const [infoUrl, setInfoUrl] = useState(null);
   const [conversationList, setConversationList] = useState(null);
   const [stutterList, setStutterList] = useState(null);
   const [motionList, setMotionList] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const simulationIdParams = 16; // 선수 백엔드 api 적용 안 되어서, 정보 출력확인을 위해 임시로 하드코딩
 
   const handleNext = () => {
     if (stutterList && stutterList.length > 0) {
@@ -45,7 +46,7 @@ const FeedbackPage = () => {
     }
     
     // 시뮬 정보 & 영상 api 호출
-    fetch(API_BASE_URL + `/api/v1/simulations/${simulationIdParams}/info`, options)
+    fetch(API_BASE_URL + `/api/v1/simulations/${simId}/info`, options)
     .then((res) => {
       if(!res.ok) {
         throw new Error('Network response was not ok');
@@ -59,7 +60,7 @@ const FeedbackPage = () => {
       console.error('There was a problem with the fetch operation:', error);
     });
     // 대화 내용 api 호출
-    fetch(API_BASE_URL + `/api/v1/simulations/${simulationIdParams}/conversation`, options)
+    fetch(API_BASE_URL + `/api/v1/simulations/${simId}/conversation`, options)
     .then((res) => {
       if(!res.ok) {
         throw new Error('Network response was not ok');
@@ -73,7 +74,7 @@ const FeedbackPage = () => {
       console.error('There was a problem with the fetch operation:', error);
     });
     // 말더듬 api 호출
-    fetch(API_BASE_URL + `/api/v1/simulations/${simulationIdParams}/stutter`, options)
+    fetch(API_BASE_URL + `/api/v1/simulations/${simId}/stutter`, options)
     .then((res) => {
       if(!res.ok) {
         throw new Error('Network response was not ok');
@@ -87,7 +88,7 @@ const FeedbackPage = () => {
       console.error('There was a problem with the fetch operation:', error);
     });
     // 동작인식 api 호출
-    fetch(API_BASE_URL + `/api/v1/simulations/${simulationIdParams}/motion`, options)
+    fetch(API_BASE_URL + `/api/v1/simulations/${simId}/motion`, options)
     .then((res) => {
       if(!res.ok) {
         throw new Error('Network response was not ok');
@@ -100,11 +101,11 @@ const FeedbackPage = () => {
     .catch((error) => {
       console.error('There was a problem with the fetch operation:', error);
     });
-  }, [simulationIdParams]);
+  }, [simId]);
   
   const navigate = useNavigate();
   const checkBtn = () => {
-    navigate('/');
+    navigate(`/patients/${pntId}`);
   };
   
   const menuList = useRef(null);
