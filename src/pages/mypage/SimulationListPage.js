@@ -1,50 +1,41 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
 import Header from '../../components/Header.js';
+import { API_BASE_URL } from '../../api/apiConfig.js';
 
 import './SimulationListPage.css';
-
-// 환자 id로 백엔드 api를 호출하여 받은 시뮬 리스트라고 가정 
-const simulations = [
-  {
-    "simulationId": 10, 
-    "date": "24/07/09",
-    "situation": "레스토랑", 
-    "totalTime": "3분 34초",
-    "wordsPerMin": 120,
-    "stutterCount": 6,  //말더듬 횟수
-    "motionCount": 10   //동작감지 횟수
-  },
-  {
-    "simulationId": 34, 
-    "date": "24/07/16",
-    "situation": "미용실", 
-    "totalTime": "2분 05초",
-    "wordsPerMin": 135,
-    "stutterCount": 4,
-    "motionCount": 15
-  },
-  {
-    "simulationId": 57, 
-    "date": "24/07/27",
-    "situation": "레스토랑", 
-    "totalTime": "4분 24초",
-    "wordsPerMin": 80,
-    "stutterCount": 9,
-    "motionCount": 3
-  },
-]
-
-// 환자 id로 백엔드 api를 호출하여 받은 환자 정보라고 가정 
-const patientInfo = {
-  "name": "정성찬", 
-  "birth": "01.04.19"
-}
 
 const SimulationListPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [ptName, setPtName] = useState(null);
+  const [ptSimulList, setPtSimulList] = useState(null);
+
+  useEffect(() => {
+    const ptSimulData = async () => {
+      try {
+        const response = await fetch(API_BASE_URL + `/api/v1/simulations/${id}`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch patients');
+        }
+
+        const data = await response.json();
+        setPtName(data["name"]); 
+        setPtSimulList(data["simulations"]); 
+      } catch (error) {
+        console.error('Error fetching patients:', error);
+      }
+    };
+
+    ptSimulData(); 
+  }, []);
 
   const handlePatientListClick = () => {
     navigate('/patients');
@@ -60,7 +51,7 @@ const SimulationListPage = () => {
       <Header />
       <div className="patient-list-container">
         <div className="patient-list-header">
-          <div className="patient-list-title">{patientInfo.name}님</div> 
+          <div className="patient-list-title">{ptName}님</div> 
           <div className="button-container">
             <button
               className="action-button active"
@@ -84,20 +75,21 @@ const SimulationListPage = () => {
               </tr>
             </thead>
             <tbody>
-              {simulations.map((simulation) => (
-                <tr
-                  key={simulation.simulationId}
-                  onClick={() => handleFeedbackClick(simulation.simulationId)}
-                >
-                  <td>{simulation.simulationId}</td>
-                  <td>{simulation.date}</td>
-                  <td>{simulation.situation}</td>
-                  <td>{simulation.totalTime}</td>
-                  <td>{simulation.wordsPerMin}</td>
-                  <td>{simulation.stutterCount}</td>
-                  <td>{simulation.motionCount}</td>
-                </tr>
-              ))}
+              {ptSimulList ? 
+                ptSimulList.map((simulation) => (
+                  <tr key={simulation.simulationId}
+                    onClick={() => handleFeedbackClick(simulation.simulationId)}
+                  >
+                    <td>{simulation.simulationId}</td>
+                    <td>{simulation.date}</td>
+                    <td>{simulation.situation}</td>
+                    <td>{simulation.totalTime}</td>
+                    <td>{simulation.wordsPerMin}</td>
+                    <td>{simulation.stutterCount}</td>
+                    <td>{simulation.motionCount}</td>
+                  </tr>
+                )) : <tr><td>정보가 없습니다.</td></tr>
+              }
             </tbody>
           </table>
         </div>

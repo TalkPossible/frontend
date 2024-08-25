@@ -35,6 +35,7 @@ const PatientListPage = () => {
 
   const handleRowClick = (patient) => {
     setSelectedPatient(patient);
+    localStorage.setItem("patientId", patient.patientId);
   };
 
   const handleSimulationStartClick = () => {
