@@ -12,6 +12,7 @@ import { FdMainSkeleton, FdMenuListSkeleton, FdMenuConversationSkeleton,
 
 const FeedbackPage = () => {
   const { simId } = useParams();
+  const pntId = localStorage.getItem("patientId");
   const [infoUrl, setInfoUrl] = useState(null);
   const [conversationList, setConversationList] = useState(null);
   const [stutterList, setStutterList] = useState(null);
@@ -104,7 +105,7 @@ const FeedbackPage = () => {
   
   const navigate = useNavigate();
   const checkBtn = () => {
-    navigate('/');
+    navigate(`/patients/${pntId}`);
   };
   
   const menuList = useRef(null);
