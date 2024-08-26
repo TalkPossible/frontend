@@ -22,8 +22,7 @@ const Header = () => {
     navigate("/patients");
   };
   const logout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
+    localStorage.clear();
     window.location.href = "/";
   };
 
