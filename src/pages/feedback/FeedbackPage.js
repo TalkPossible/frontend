@@ -230,7 +230,7 @@ const FeedbackPage = () => {
                 height="100%" 
                 src={infoUrl.videoUrl}
                 frameBorder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                 allowFullScreen>
               </iframe>
             </div>
