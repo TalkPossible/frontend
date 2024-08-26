@@ -1,9 +1,10 @@
 import React, { useRef, useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { API_BASE_URL } from "../../api/apiConfig.js";
 
 import './FeedbackPage.css';
 
+import { API_BASE_URL } from "../../api/apiConfig.js";
+import { call } from "../../service/ApiService.js";
 import Header from "../../components/Header.js";
 import { LeftBubble, RightBubble } from "../../components/ChatBubble.js";
 import StutterCard from "../../components/StutterCard.js";
@@ -18,8 +19,6 @@ const FeedbackPage = () => {
   const [stutterList, setStutterList] = useState(null);
   const [motionList, setMotionList] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-  
-  let isComponentMounted = true;
 
   const handleNext = () => {
     if (stutterList && stutterList.length > 0) {
@@ -28,12 +27,6 @@ const FeedbackPage = () => {
       );
     }
   };
-
-  useEffect(() => {
-    return () => {
-      isComponentMounted = false;
-    };
-  }, []);
   
   const handlePrev = () => {
     if (stutterList && stutterList.length > 0) {
@@ -42,6 +35,14 @@ const FeedbackPage = () => {
       );
     }
   };
+  
+  let isComponentMounted = true;
+
+  useEffect(() => {
+    return () => {
+      isComponentMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     let headers = new Headers({
@@ -53,62 +54,26 @@ const FeedbackPage = () => {
       headers
     }
     
-    // 시뮬 정보 & 영상 api 호출
-    fetch(API_BASE_URL + `/api/v1/simulations/${simId}/info`, options)
-    .then((res) => {
-      if(!res.ok) {
-        throw new Error('Network response was not ok');
-      }
-      return res.json();
-    })
+    // api 호출
+    call(`/api/v1/simulations/${simId}/info`, 'GET') // 시뮬 정보 & 영상 
     .then((data) => {
       setInfoUrl(data);
     })
-    .catch((error) => {
-      console.error('There was a problem with the fetch operation:', error);
-    });
-    // 대화 내용 api 호출
-    fetch(API_BASE_URL + `/api/v1/simulations/${simId}/conversation`, options)
-    .then((res) => {
-      if(!res.ok) {
-        throw new Error('Network response was not ok');
-      }
-      return res.json();
-    })
+    
+    call(`/api/v1/simulations/${simId}/conversation`, 'GET') // 대화 내용
     .then((data) => {
       setConversationList(data.conversationList);
     })
-    .catch((error) => {
-      console.error('There was a problem with the fetch operation:', error);
-    });
-    // 말더듬 api 호출
-    fetch(API_BASE_URL + `/api/v1/simulations/${simId}/stutter`, options)
-    .then((res) => {
-      if(!res.ok) {
-        throw new Error('Network response was not ok');
-      }
-      return res.json();
-    })
+    
+    call(`/api/v1/simulations/${simId}/stutter`, 'GET') // 말더듬
     .then((data) => {
       setStutterList(data.stutterList);
     })
-    .catch((error) => {
-      console.error('There was a problem with the fetch operation:', error);
-    });
-    // 동작인식 api 호출
-    fetch(API_BASE_URL + `/api/v1/simulations/${simId}/motion`, options)
-    .then((res) => {
-      if(!res.ok) {
-        throw new Error('Network response was not ok');
-      }
-      return res.json();
-    })
+    
+    call(`/api/v1/simulations/${simId}/motion`, 'GET') // 동작인식
     .then((data) => {
       setMotionList(data.motionList);
     })
-    .catch((error) => {
-      console.error('There was a problem with the fetch operation:', error);
-    });
   }, [simId]);
   
   const navigate = useNavigate();
