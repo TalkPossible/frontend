@@ -281,8 +281,7 @@ const FeedbackPage = () => {
 
               <div className="part-rest part-scroll">
                 {conversationList.map((cnv, index) => (
-                  <div key={index} style={{display: 'flex', justifyContent: cnv.speaker === 'chatgpt' ? 'flex-start' : 'flex-end', 
-                  width: '100%', marginBottom: '10px'}}>
+                  <div key={index} className="bubbleBox" style={{justifyContent: cnv.speaker === 'chatgpt' ? 'flex-start' : 'flex-end'}}>
                     {cnv.speaker === 'chatgpt' ? 
                       <LeftBubble key={index}>{cnv.content}</LeftBubble> :  
                       <RightBubble key={index}>{cnv.content}</RightBubble>}
@@ -303,8 +302,8 @@ const FeedbackPage = () => {
               </div>
 
               <div className="btn-pn" >
-                <button onClick={handlePrev} style={{ fontSize: '16px' }}>Prev</button>
-                <button onClick={handleNext} style={{ fontSize: '16px' }}>Next</button>
+                <button onClick={handlePrev}>Prev</button>
+                <button onClick={handleNext}>Next</button>
               </div>
             </div> : <FdMenuVoiceSkeleton/>
           }
