@@ -14,9 +14,6 @@ const ThemePage = () => {
   const [loading, setLoading] = useState(true);
   const [datas, setDatas] = useState([]);
 
-  const openModal = () => {
-    setModalOpen(true);
-  }
   const closeModal = () => {
     setModalOpen(false);
   }
@@ -28,6 +25,9 @@ const ThemePage = () => {
   }, [datas, selected]);
 
   useEffect(() => {
+    
+
+
     const fetchData = async () => {
       try {
         const res = await call('/api/v1/situations', 'GET');
