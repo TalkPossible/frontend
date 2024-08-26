@@ -1,0 +1,84 @@
+.patient-list-container {
+  padding: 20px;
+  margin: 20px auto;
+  width: calc(100% - 1cm); 
+  max-height: calc(100vh - 120px); 
+  margin-top: 10vh; 
+  position: relative;
+}
+
+.patient-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 10vh; 
+  background-color: white;
+  z-index: 101; 
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.patient-list-title {
+  font-size: 2rem; 
+  text-align: left; 
+}
+
+.patient-list-table-container {
+  overflow-y: auto;
+  max-height: calc(100vh - 160px); 
+}
+
+.patient-list-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.patient-list-table th,
+.patient-list-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center; 
+}
+
+.patient-list-table th {
+  background-color: #f4f4f4;
+  font-weight: bold;
+}
+
+.patient-list-table tr {
+  background-color: #ffffff; 
+  cursor: pointer;
+}
+
+.patient-list-table tr:hover {
+  background-color: #f1f1f1;
+}
+
+.patient-list-table tr.selected {
+  background-color: #cdeafe; 
+}
+
+.button-container {
+  display: flex;
+  gap: 10px;
+}
+
+.action-button {
+  padding: 10px 20px;
+  font-size: 1rem;
+  background-color: #ddd; 
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: not-allowed; 
+}
+
+.action-button.active {
+  background-color: #ffd401; 
+  cursor: pointer; /* 클릭 가능 */
+}
+
+.action-button.active:hover {
+  background-color: #e0b700; 
+}

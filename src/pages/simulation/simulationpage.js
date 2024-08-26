@@ -1,15 +1,13 @@
-import React, { useState } from 'react';
-import './simulationpage.css';
-import conversationImage from '../../assets/images/simultest.jpg';
-import micImage from '../../assets/images/blackmic.png';
+import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AWS from 'aws-sdk';
 import MotionDetection from '../motion/motiondetection';
+import conversationImage from '../../assets/images/simultest.jpg';
+import micImage from '../../assets/images/blackmic.png';
+import './simulationpage.css';
 
-// // 환경 변수 로그
-// console.log("AWS S3 Region:", process.env.REACT_APP_MOTION_S3_REGION);
-// console.log("AWS S3 Access Key:", process.env.REACT_APP_MOTION_S3_ACCESS_KEY);
-// console.log("AWS S3 Secret Key:", process.env.REACT_APP_MOTION_S3_SECRET_KEY);
-// console.log("AWS S3 Bucket for Videos:", process.env.REACT_APP_MOTION_S3_BUCKET_NAME);
+import { gptAPI } from "../../service/ApiService.js";
+import { useTxtRec } from '../../context/TxtRecContext.js';
 
 // AWS S3 설정 함수
 const configureS3 = () => {
@@ -92,12 +90,31 @@ const SimulationPage = () => {
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [videoUrl, setVideoUrl] = useState(null);
   const [stream, setStream] = useState(null);
+
   const [isRecording, setIsRecording] = useState(false);
+
+  const navigate = useNavigate();
+
+  const { fileNames, userMicDis, setCacheId, setContent, 
+    recording, handleStartRecording, handleStopRecording } = useTxtRec();
+
+  const recordButton = useRef(null);
+
+  useEffect(() => {
+    if (recordButton.current) {
+      if (userMicDis) {
+        recordButton.current.classList.add('disable-hover');
+      } else {
+        recordButton.current.classList.remove('disable-hover');
+      }
+    }
+  }, [userMicDis]);
 
   const startSimulation = async () => {
     if (started) return; // 이미 시작된 경우 중복 호출 방지
 
     setVideoUrl(null); // 이전 비디오 URL 초기화
+
     try {
       const userMediaStream = await navigator.mediaDevices.getUserMedia({
         video: true,
@@ -145,6 +162,14 @@ const SimulationPage = () => {
       recorder.start();
       setStarted(true);
       setIsRecording(true); // MotionDetection 시작
+
+      // 백엔드 api 호출 : gpt와 대화하기 : gpt의 답변을 먼저 받기 위해 started==true일 때 빈 문자열을 보냄 (처음 한번만 실행)
+      gptAPI("", null).then(newResponse => {
+        setCacheId(newResponse.newCacheId);
+        setContent(newResponse.newContent);
+      }).catch(error => {
+        console.log('Error calling GPT API or TTS API: ', error);
+      });
     } catch (error) {
       if (error.name === "NotReadableError") {
         console.error("웹캠 접근 오류: 다른 애플리케이션이 웹캠을 사용 중이거나 리소스 문제로 인해 접근할 수 없습니다.");
@@ -156,7 +181,9 @@ const SimulationPage = () => {
 
   const stopSimulation = () => {
     if (mediaRecorder && mediaRecorder.state !== "inactive") {
+      console.log("[상황종료] 파일명 리스트 : ", fileNames);
       mediaRecorder.stop();
+      navigate('/');
     } else {
       console.error("MediaRecorder is already inactive or not initialized.");
     }
@@ -165,9 +192,16 @@ const SimulationPage = () => {
   return (
     <div className="container">
       {!started ? (
-        <button className="startButton" onClick={startSimulation}>
-          시뮬레이션 시작
-        </button>
+        <>
+          <div className="description">
+            <span>말하는 도중</span> 또는 <span>발화 직후</span> 녹음중지 버튼을 누르면 <br/>
+            마지막 발화를 인지하지 못 할 수 있느니 <br/>
+            <span>텀</span>을 두고 버튼을 클릭해주세요.
+          </div>
+          <button className="startButton" onClick={startSimulation}>
+            시뮬레이션 시작
+          </button>
+        </>
       ) : (
         <div className="simulationContainer">
           <div className="topSection">
@@ -175,8 +209,12 @@ const SimulationPage = () => {
             <button className="stopButton" onClick={stopSimulation}>종료</button>
           </div>
           <div className="bottomSection">
-            <button className="recordButton">
-              <img src={micImage} alt="Mic Icon" className="micImage" />
+            <button className="recordButton disable-hover" disabled={userMicDis} ref={recordButton}
+              onClick={recording ? handleStopRecording : handleStartRecording}
+            >
+              <img className="micImage"
+                src={recording ? "/images/simul/mic_ing.png" : "/images/simul/mic.png"} alt="mic"  
+              />
             </button>
           </div>
           {videoUrl && (
