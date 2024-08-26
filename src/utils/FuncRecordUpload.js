@@ -4,69 +4,94 @@ const storageAccAzure = process.env.REACT_APP_AZURE_STORAGE_ACC;
 const storageContainerNameAzure = process.env.REACT_APP_AZURE_STORAGE_CONTAINER_NAME;
 const storageSasTokenAzure = process.env.REACT_APP_AZURE_STORAGE_SAS_TOKEN;
 
-export const onRecAudio = (setStream, setMedia, setOnRec, setSource, setAnalyser, setAudioUrl) => {
-  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  const analyser = audioCtx.createScriptProcessor(0, 1, 1);
-  setAnalyser(analyser);
+// ==============================================================================
 
-  function makeSound(stream) {
-    const source = audioCtx.createMediaStreamSource(stream);
-    setSource(source);
-    source.connect(analyser);
-    analyser.connect(audioCtx.destination);
-  }
+export const onRecAudio = async (setAudioBlob, mediaRecorderRef, audioChunks) => {
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  mediaRecorderRef.current = new MediaRecorder(stream);
 
-  navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
-    const mediaRecorder = new MediaRecorder(stream);
+  mediaRecorderRef.current.ondataavailable = (event) => {
+    audioChunks.current.push(event.data);
+  };
 
-    mediaRecorder.addEventListener('dataavailable', (e) => {
-      setAudioUrl(e.data);
+  mediaRecorderRef.current.onstop = async () => {
+    const blob = new Blob(audioChunks.current, { type: 'audio/webm' });
+    const wavBlob = await convertBlobToWav(blob);
+    setAudioBlob(wavBlob);
+    audioChunks.current = [];
+  };
+
+  mediaRecorderRef.current.start();
+};
+
+// ==============================================================================
+
+export const offRecAudio = (mediaRecorderRef) => {
+  mediaRecorderRef.current.stop();
+};
+
+// ==============================================================================
+
+export const onSubmitAudioFile = async (audioBlob) => {
+  if (audioBlob) {
+    const blobName = `${new Date().toISOString().replace(/[:.]/g, '_')}.wav`;
+
+    const blobServiceClient = new BlobServiceClient(`https://${storageAccAzure}.blob.core.windows.net/?${storageSasTokenAzure}`);
+    const containerClient = blobServiceClient.getContainerClient(storageContainerNameAzure);
+    const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+
+    await blockBlobClient.uploadData(audioBlob, {
+      blobHTTPHeaders: { blobContentType: "audio/wav" },
     });
-
-    mediaRecorder.start();
-    setStream(stream);
-    setMedia(mediaRecorder);
-    makeSound(stream);
-
-    analyser.onaudioprocess = function (e) {
-      setOnRec(false);
-    };
-  }).catch((error) => {
-    alert('마이크 사용 권한을 허용해야 녹음을 진행할 수 있습니다.');
-  });
+    
+    return blobName;
+  }
 };
 
-export const offRecAudio = (stream, media, analyser, source, setOnRec) => {
-  stream.getAudioTracks().forEach(function (track) {
-    track.stop();
+// ==============================================================================
+
+const convertBlobToWav = async (blob) => {
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)({
+    sampleRate: 16000,
   });
-
-  media.stop();
-  analyser.disconnect();
-  source.disconnect();
-
-  setOnRec(true);
+  const arrayBuffer = await blob.arrayBuffer();
+  const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+  const numberOfChannels = audioBuffer.numberOfChannels;
+  const length = audioBuffer.length * numberOfChannels * 2 + 44;
+  const buffer = new ArrayBuffer(length);
+  const view = new DataView(buffer);
+  
+  // WAV 파일 헤더 작성
+  writeString(view, 0, 'RIFF');
+  view.setUint32(4, 36 + audioBuffer.length * numberOfChannels * 2, true);
+  writeString(view, 8, 'WAVE');
+  writeString(view, 12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, numberOfChannels, true);
+  view.setUint32(24, 16000, true);
+  view.setUint32(28, 16000 * 2 * numberOfChannels, true);
+  view.setUint16(32, numberOfChannels * 2, true);
+  view.setUint16(34, 16, true);
+  writeString(view, 36, 'data');
+  view.setUint32(40, audioBuffer.length * numberOfChannels * 2, true);
+  
+  // PCM 샘플 작성
+  const offset = 44;
+  for (let i = 0; i < audioBuffer.length; i++) {
+    for (let channel = 0; channel < numberOfChannels; channel++) {
+      const sample = audioBuffer.getChannelData(channel)[i];
+      const intSample = sample < 0 ? sample * 32768 : sample * 32767;
+      view.setInt16(offset + (i * numberOfChannels + channel) * 2, intSample, true);
+    }
+  }
+  return new Blob([buffer], { type: 'audio/wav' });
 };
 
-export const onSubmitAudioFile = async (audioUrl) => {
-  if (audioUrl) {
-    const time = new Date().getTime();
-    const fileName = "audioFile" + "_" + time;
-    const sound = new File([audioUrl], `${fileName}.wav`, { lastModified: new Date().getTime() });
-    const options = {
-      blobHTTPHeaders: { blobContentType: "audio/wav" }
-    };
+// ==============================================================================
 
-    const account = storageAccAzure;
-    const storageSasToken = storageSasTokenAzure;
-    const containerName = storageContainerNameAzure;
-
-    const blobServiceClient = new BlobServiceClient(`https://${account}.blob.core.windows.net/?${storageSasToken}`);
-    const containerClient = blobServiceClient.getContainerClient(containerName);
-    const blockBlobClient = containerClient.getBlockBlobClient(sound.name);
-
-    await blockBlobClient.uploadData(sound, options);
-
-    return fileName;
+const writeString = (view, offset, string) => {
+  for (let i = 0; i < string.length; i++) {
+    view.setUint8(offset + i, string.charCodeAt(i));
   }
 };
