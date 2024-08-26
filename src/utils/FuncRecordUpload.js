@@ -52,7 +52,10 @@ export const onSubmitAudioFile = async (audioUrl) => {
   if (audioUrl) {
     const time = new Date().getTime();
     const fileName = "audioFile" + "_" + time;
-    const sound = new File([audioUrl], `${fileName}.wav`, { lastModified: new Date().getTime(), type: "audio/wav" });
+    const sound = new File([audioUrl], `${fileName}.wav`, { lastModified: new Date().getTime() });
+    const options = {
+      blobHTTPHeaders: { blobContentType: "audio/wav" }
+    };
 
     const account = storageAccAzure;
     const storageSasToken = storageSasTokenAzure;
@@ -62,7 +65,7 @@ export const onSubmitAudioFile = async (audioUrl) => {
     const containerClient = blobServiceClient.getContainerClient(containerName);
     const blockBlobClient = containerClient.getBlockBlobClient(sound.name);
 
-    await blockBlobClient.uploadBrowserData(sound);
+    await blockBlobClient.uploadData(sound, options);
 
     return fileName;
   }
