@@ -2,14 +2,14 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AWS from 'aws-sdk';
 
-import conversationImage from '../../assets/images/simultest.jpg';
+import video1 from '../../assets/images/1.mp4';
+import video2 from '../../assets/images/2.mp4';
 
 import './simulationpage.css';
 
 import { gptAPI } from "../../service/ApiService.js";
 import { useTxtRec } from '../../context/TxtRecContext.js';
 
-// AWS S3 설정 함수
 const configureS3 = () => {
   const REGION = process.env.REACT_APP_MOTION_S3_REGION;
   const ACCESS_KEY = process.env.REACT_APP_MOTION_S3_ACCESS_KEY;
@@ -24,17 +24,14 @@ const configureS3 = () => {
   return new AWS.S3();
 };
 
-// 비디오를 S3에 업로드하는 함수
 const uploadToS3 = async (blob) => {
-  const s3 = configureS3(); // AWS S3 설정
+  const s3 = configureS3();
   const params = {
-    Bucket: process.env.REACT_APP_MOTION_S3_BUCKET_NAME, // 비디오를 업로드할 버킷
-    Key: `video/${Date.now()}.webm`, // 비디오 파일을 video 폴더에 업로드
+    Bucket: process.env.REACT_APP_MOTION_S3_BUCKET_NAME,
+    Key: `video/${Date.now()}.webm`,
     Body: blob,
     ContentType: 'video/webm',
   };
-
-  console.log("Uploading to S3 with params:", params); // 디버깅을 위해 콘솔 출력
 
   return new Promise((resolve, reject) => {
     s3.upload(params, (err, data) => {
@@ -42,7 +39,7 @@ const uploadToS3 = async (blob) => {
         console.error("Error uploading video to S3: ", err);
         reject(err);
       } else {
-        resolve(data.Location); // 업로드된 비디오의 URL 반환
+        resolve(data.Location);
       }
     });
   });
@@ -53,6 +50,7 @@ const SimulationPage = () => {
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [videoUrl, setVideoUrl] = useState(null);
   const [stream, setStream] = useState(null);
+  const [currentVideo, setCurrentVideo] = useState(video1);
 
   const navigate = useNavigate();
 
@@ -65,21 +63,29 @@ const SimulationPage = () => {
     if (recordButton.current) {
       if (userMicDis) {
         recordButton.current.classList.add('disable-hover');
+        setCurrentVideo(video1);
       } else {
         recordButton.current.classList.remove('disable-hover');
+        setCurrentVideo(video2);  
       }
     }
   }, [userMicDis]);
 
-  const startSimulation = async () => {
-    if (started) return; // 이미 시작된 경우 중복 호출 방지
+  useEffect(() => {
+    if (!userMicDis) {
+      setCurrentVideo(video2);  
+    }
+  }, [recording]);
 
-    setVideoUrl(null); // 이전 비디오 URL 초기화
+  const startSimulation = async () => {
+    if (started) return;
+
+    setVideoUrl(null);
 
     try {
       const userMediaStream = await navigator.mediaDevices.getUserMedia({
         video: true,
-        audio: true, // 오디오 포함
+        audio: true,
       });
 
       const recorder = new MediaRecorder(userMediaStream);
@@ -96,10 +102,9 @@ const SimulationPage = () => {
       recorder.onstop = async () => {
         const blob = new Blob(chunks, { type: 'video/webm' });
 
-        // 업로드 및 URL 업데이트
         try {
           const s3Url = await uploadToS3(blob);
-          setVideoUrl(s3Url); // S3 URL로 업데이트
+          setVideoUrl(s3Url);
         } catch (error) {
           console.error("Error uploading video to S3: ", error);
         } finally {
@@ -114,8 +119,7 @@ const SimulationPage = () => {
 
       recorder.start();
       setStarted(true);
-      
-      // 백엔드 api 호출 : gpt와 대화하기 : gpt의 답변을 먼저 받기 위해 started==true일 때 빈 문자열을 보냄 (처음 한번만 실행)
+
       gptAPI("", null).then(newResponse => {
         setCacheId(newResponse.newCacheId);
         setContent(newResponse.newContent);
@@ -134,7 +138,6 @@ const SimulationPage = () => {
   const stopSimulation = () => {
     if (mediaRecorder && mediaRecorder.state !== "inactive") {
       ttsStop();
-      console.log("[상황종료] 파일명 리스트 : ", fileNames);
       mediaRecorder.stop();
       navigate('/');
     } else {
@@ -158,7 +161,7 @@ const SimulationPage = () => {
       ) : (
         <div className="simulationContainer">
           <div className="topSection">
-            <img src={conversationImage} alt="Conversation Partner" className="image" />
+            <video src={currentVideo} autoPlay loop muted className="video" />
             <button className="stopButton" onClick={stopSimulation}>종료</button>
           </div>
           <div className="bottomSection">

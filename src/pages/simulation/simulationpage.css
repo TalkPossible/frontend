@@ -24,7 +24,7 @@
   border: none;
   background-color: #007BFF;
   color: white;
-  appearance: none; 
+  appearance: none;
 }
 
 .simulationContainer {
@@ -52,13 +52,16 @@
   border: none;
   background-color: #FF4136;
   color: white;
-  appearance: none; 
+  appearance: none;
 }
 
-.image {
-  max-height: 80%;
-  max-width: 80%;
-  object-fit: contain;
+/* 비디오 크기 및 위치 조정 */
+.video {
+  max-height: 60%;
+  max-width: 100%;
+  object-fit: cover;
+  position: absolute;
+  bottom: 0; /* 마이크 위에 오도록 하단에 배치 */
 }
 
 .bottomSection {
@@ -80,13 +83,12 @@
   align-items: center;
   justify-content: center;
   position: relative;
-  appearance: none; 
+  appearance: none;
 }
 
 .micImage {
   width: 2cm;
   height: 2cm;
-  /* border-radius: 50%; */
   object-fit: cover;
   display: block;
   border: none;
@@ -126,5 +128,5 @@
 }
 
 body {
-  text-size-adjust: 100%; 
+  text-size-adjust: 100%;
 }
