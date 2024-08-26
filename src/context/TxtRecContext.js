@@ -2,7 +2,7 @@ import React, { createContext, useState, useEffect, useContext, useCallback } fr
 import { startRecording, stopRecording } from '../utils/FuncAzureSTT.js';
 import { onRecAudio, offRecAudio, onSubmitAudioFile } from '../utils/FuncRecordUpload.js';
 import { gptAPI, userMessageSaveAPI } from '../service/ApiService.js';
-import { ttsAPI } from '../utils/FuncGoogleTTS.js';
+import { ttsAPI, ttsStop } from '../utils/FuncGoogleTTS.js';
 
 const TxtRecContext = createContext();
 
@@ -76,7 +76,7 @@ export const TxtRecProvider = ({ children }) => {
   }, [cacheId, content]);
 
   return (
-    <TxtRecContext.Provider value={{ fileNames, setUserMicDis, userMicDis, 
+    <TxtRecContext.Provider value={{ ttsStop, fileNames, setUserMicDis, userMicDis, 
       setCacheId, setContent, recording, handleStartRecording, handleStopRecording }}>
       {children}
     </TxtRecContext.Provider>

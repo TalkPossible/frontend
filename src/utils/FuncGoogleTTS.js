@@ -1,4 +1,10 @@
 // tts api 호출 
+var audioFile = new Audio();
+
+export function ttsStop() {
+  audioFile.pause();
+}
+
 export function ttsAPI(content, setUserMicDis) {
   const ttsKey = process.env.REACT_APP_TTS_API_KEY;
 
@@ -30,7 +36,6 @@ export function ttsAPI(content, setUserMicDis) {
     return response.json();
   })
   .then(res => {
-    var audioFile = new Audio();
     let audioBlob = base64ToBlob(res.audioContent, "mp3");
     audioFile.src = window.URL.createObjectURL(audioBlob);
     audioFile.playbackRate = 1; //재생속도
