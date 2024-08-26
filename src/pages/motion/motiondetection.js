@@ -1,8 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { PoseLandmarker, FilesetResolver, DrawingUtils } from 'https://cdn.skypack.dev/@mediapipe/tasks-vision@0.10.0';
-import { m } from 'framer-motion';
-import AWS from 'aws-sdk';
-import { log } from '@tensorflow/tfjs';
+
 
 const MotionDetection = ({ isRecording }) => {
   const videoRef = useRef(null);

@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import AWS from 'aws-sdk';
 import MotionDetection from '../motion/motiondetection';
 import conversationImage from '../../assets/images/simultest.jpg';
-import micImage from '../../assets/images/blackmic.png';
 import './simulationpage.css';
 
 import { gptAPI } from "../../service/ApiService.js";
 import { useTxtRec } from '../../context/TxtRecContext.js';
+
+import { API_BASE_URL } from "../../api/apiConfig.js";
 
 // AWS S3 설정 함수
 const configureS3 = () => {
@@ -49,30 +50,46 @@ const uploadToS3 = async (blob) => {
 };
 
 // 동작 감지 내역 백엔드로 전송
-const postMotionData = async (motions, videoUrl) => {
+const postMotionData = async (motions, videoUrl, simulationTime) => {
 
     // motionList 생성
     const motionList = motions.length > 0 ? motions.map(motion => ({
       actionName: motion.motionName,
       timestamp: motion.timestamp,
-    })) : null;
-  
+    })) : [];
+
+    const simulationId = parseInt(localStorage.getItem('simulationId'), 10);
+    const patientId = parseInt(localStorage.getItem('patientId'), 10);
+    const runDate = new Date().toISOString().split('T')[0];
+    const totalTime = simulationTime;
+
     try {
-      const endpoint = '/api/v1/motion';
+      const endpoint = API_BASE_URL + '/api/v1/motion';
   
-      const body = JSON.stringify({ motionList, videoUrl });
+      const body = JSON.stringify({ 
+        simulationId,
+        patientId,
+        runDate,
+        motionList, 
+        videoUrl,
+        totalTime 
+      });
       console.log("body: ", body);
   
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
           'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
         body: body,
       });
   
       if (!response.ok) {
-        throw new Error('Failed to send motion data');
+        const errorText = await response.text();
+        console.log('*** send error: ' + errorText);
+        throw new Error(`Failed to send motion data: ${errorText}`);
       }
   
       console.log('Motion data sent successfully!');
@@ -93,6 +110,9 @@ const SimulationPage = () => {
 
   const [isRecording, setIsRecording] = useState(false);
 
+  const startTime = useRef(null); // 시뮬레이션 시작 시각
+  const endTime = useRef(null); // 시뮬레이션 종료 시각 
+
   const navigate = useNavigate();
 
   const { fileNames, userMicDis, setCacheId, setContent, 
@@ -110,10 +130,17 @@ const SimulationPage = () => {
     }
   }, [userMicDis]);
 
+  const calculateTotalTime = (start, end) => {
+    const diff = new Date(end.current - start.current);
+    return diff.toISOString().slice(11, 19); // HH:mm:ss 형식으로 반환
+  };
+
   const startSimulation = async () => {
     if (started) return; // 이미 시작된 경우 중복 호출 방지
 
     setVideoUrl(null); // 이전 비디오 URL 초기화
+    startTime.current = new Date();
+    console.log('*** startTime: ' + startTime);
 
     try {
       const userMediaStream = await navigator.mediaDevices.getUserMedia({
@@ -133,6 +160,11 @@ const SimulationPage = () => {
       };
 
       recorder.onstop = async () => {
+
+        endTime.current = new Date(); // 시뮬레이션 종료 시각 기록
+        console.log('*** endTime: ' + endTime);
+        const simulationTime = calculateTotalTime(startTime, endTime); // 시뮬레이션 진행 시간 계산
+
         const blob = new Blob(chunks, { type: 'video/webm' });
         
         // 세션 스토리지에서 동작 감지 내역 가져오기
@@ -144,7 +176,7 @@ const SimulationPage = () => {
           setVideoUrl(s3Url); // S3 URL로 업데이트
 
           // 백엔드로 데이터 전송
-          await postMotionData(motions, s3Url);
+          await postMotionData(motions, s3Url, simulationTime);
 
         } catch (error) {
           console.error("Error uploading video to S3: ", error);
@@ -170,6 +202,7 @@ const SimulationPage = () => {
       }).catch(error => {
         console.log('Error calling GPT API or TTS API: ', error);
       });
+
     } catch (error) {
       if (error.name === "NotReadableError") {
         console.error("웹캠 접근 오류: 다른 애플리케이션이 웹캠을 사용 중이거나 리소스 문제로 인해 접근할 수 없습니다.");
