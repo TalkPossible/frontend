@@ -14,7 +14,6 @@ const MotionDetection = ({ isRecording }) => {
   const startTime = useRef(null);
   // const actionStartTime = useRef(null);
   const actionStartTimes =  useRef({
-    wristAboveShoulder: null,
     touchingHead: null,
     touchingNeck: null,
     touchingFace: null
@@ -22,7 +21,6 @@ const MotionDetection = ({ isRecording }) => {
 
   // 최근 거리값을 저장할 버퍼
   const buffers = useRef({
-    wristAboveShoulderBuffer: [],
     touchingHeadBuffer: [],
     touchingNeckBuffer: [],
     touchingFaceBuffer: []
@@ -84,7 +82,6 @@ const MotionDetection = ({ isRecording }) => {
   };
 
   const actionTypeToName = {
-    wristAboveShoulder: "머리 만지기",
     touchingHead: "머리 만지기",
     touchingNeck: "목 만지기",
     touchingFace: "얼굴 만지기"
@@ -124,7 +121,7 @@ const MotionDetection = ({ isRecording }) => {
         //console.log(`[${actionType}] 동작이 처음 감지됨! actionStartTime:`, actionStartTimes.current[actionType]);
       } else {
         const actionTime = calculateActionTime(actionStartTimes.current[actionType]);
-        //console.log(`[${actionType}] 동작이 연속적으로 감지됨! actionTime:`, actionTime);
+        console.log(`[${actionType}] 동작이 연속적으로 감지됨! actionTime:`, actionTime);
   
         if (actionTime >= duration) {
           console.log(`[${actionType}] 동작이 ${duration}초 이상 지속됨! actionTime:`, actionTime);
@@ -139,108 +136,32 @@ const MotionDetection = ({ isRecording }) => {
     }
   };
 
-  // 머리 만지기 동작 인식: 손목이 어깨 위에 있는지 판단
-  const checkWristAboveShoulder = (landmarks) => {
+  // 머리 만지기 동작 인식
+  const checkTouchingHead = (landmarks) => {
 
     const getLandmark = (name) => landmarks.find(l => l.name === name);
 
-    const leftShoulder = getLandmark("Left Shoulder");
-    const rightShoulder = getLandmark("Right Shoulder");
-    const leftWrist = getLandmark("Left Wrist");
-    const rightWrist = getLandmark("Right Wrist");
+    // 손가락 랜드마크 배열
+    const leftHandFingers = ["Left Pinky", "Left Index", "Left Thumb"].map(getLandmark);
+    const rightHandFingers = ["Right Pinky", "Right Index", "Right Thumb"].map(getLandmark);
+    
+    // 귀 랜드마크 배열
+    const ears = ["Left Ear", "Right Ear"].map(getLandmark);
 
-    const isWristAboveShoulder = [
-      leftShoulder && leftWrist && leftWrist.y < leftShoulder.y,
-      leftShoulder && rightWrist && rightWrist.y < leftShoulder.y,
-      rightShoulder && leftWrist && leftWrist.y < rightShoulder.y,
-      rightShoulder && rightWrist && rightWrist.y < rightShoulder.y
-    ].some(condition => condition);
+    // 손가락 <-> 귀 거리 기준
+    const HEAD_TOUCH_THRESHOLD = 0.3
 
-    detectAction(buffers.current.wristAboveShoulderBuffer, 'wristAboveShoulder', isWristAboveShoulder);
-  };
-
-  // // 머리 만지기 동작 인식: 얼굴과 손목 간 거리로 판단
-  // const headLandmarks = [ "Nose", 
-  //   "Left Eye Inner", "Left Eye", "Left Eye Outer",
-  //   "Right Eye Inner", "Right Eye", "Right Eye Outer", 
-  //   "Left Ear", "Right Ear"];
-  // const wristLandmarks = [ "Left Wrist", "Right Wrist" ];
-
-  // const checkTouchingHead = (landmarks) => {
-  //   const headPoints = headLandmarks.map(name => landmarks.find(l => l.name === name)).filter(Boolean);
-  //   const wristPoints = wristLandmarks.map(name => landmarks.find(l => l.name === name)).filter(Boolean);
-
-  //   let totalDistance = 0;
-  //   let count = 0;
-
-  //   for (const wristPoint of wristPoints) {
-  //     for (const headPoint of headPoints) {
-  //       const distance = calculateDistance(wristPoint, headPoint);
-  //       totalDistance += distance;
-  //       count += 1;
-  //     }
-  //   }
-
-  //   const averageDistance = totalDistance / count;
-  //   distanceBuffer.current.push(averageDistance);
-
-  //   if (distanceBuffer.current.length > 5) {
-  //     distanceBuffer.current.shift(); // 최근 5개의 거리값만 유지
-  //   }
-
-  //   const averageBufferedDistance = distanceBuffer.current.reduce((a, b) => a + b, 0) / distanceBuffer.current.length;
-  //   //console.log('averageBufferedDistance:', averageBufferedDistance);
-
-  //   if (averageBufferedDistance < 1.2) {
-  //     if (!actionStartTime.current) {
-  //       actionStartTime.current = Date.now();
-  //       //console.log('동작이 처음 감지됨! actionStartTime:', actionStartTime.current);
-  //     } else {
-  //       const actionTime = calculateActionTime();
-  //       //console.log('동작이 연속적으로 감지됨! actionTime:', actionTime);
-          
-  //       if (actionTime >= 3) { // 동작이 3초 이상 지속되는지 확인
-  //         console.log('머리 만지는 동작이 3초 이상 지속됨! actionTime: ' + actionTime + '초 ing');
-  //         const formattedTime = formatElapsedTime(calculateElapsedTime());
-  //         const actionName = '머리 만지기';
-
-  //         // 동작이 감지되면 이미지 캡처
-  //         // const canvas = document.createElement('canvas');
-  //         // const video = videoRef.current;
-  //         // canvas.width = video.videoWidth;
-  //         // canvas.height = video.videoHeight;
-  //         // const ctx = canvas.getContext('2d');
-  //         // ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  //         // canvas.toBlob(async (blob) => {
-  //         //   const file = new File([blob], `${actionName}-${formattedTime}.png`, { type: 'image/png' });
-  //         //   await saveToStorage(actionName, file, formattedTime);
-  //         // }, 'image/png');
-          
-  //         // 동작 감지 내역 세션 스토리지에 저장
-  //         saveToStorage(actionName, formattedTime);
-  //         actionStartTime.current = null;
-  //       }
-  //     }
-  //   } 
-  //   else {
-  //     //console.log('머리 만지는 동작이 감지되지 않음');
-  //     actionStartTime.current = null;
-  //   }
-  // };
-
-  // 좌표 평균값 계산
-  const getAverageCoordinate = (coordinates) => {
-    const sum = coordinates.reduce((acc, coord) => {
-      acc.x += coord.x;
-      acc.y += coord.y;
-      return acc;
-    }, { x: 0, y: 0 });
-
-    return {
-      x: sum.x / coordinates.length,
-      y: sum.y / coordinates.length
+    // 머리 만지기 동작 감지
+    const isHandNearHead = (fingers) => {
+      return fingers.some(finger =>
+        ears.some(landmark => calculateDistance(finger, landmark) < HEAD_TOUCH_THRESHOLD)
+      );
     };
-  };
+
+    const isTouchingHead = isHandNearHead(leftHandFingers) || isHandNearHead(rightHandFingers);      
+  
+    detectAction(buffers.current.touchingHeadBuffer, 'touchingHead', isTouchingHead);
+  };  
 
   // 목 만지기 동작 인식
   const checkTouchingNeck = (landmarks) => {
@@ -259,54 +180,46 @@ const MotionDetection = ({ isRecording }) => {
       z: (mouthLeft.z + mouthRight.z) / 2
     };
 
-    const leftWrist = getLandmark("Left Wrist");
-    const rightWrist = getLandmark("Right Wrist");
+    const leftPinky = getLandmark("Left Pinky");
+    const leftThumb = getLandmark("Left Thumb");
+    const rightPinky = getLandmark("Right Pinky");
+    const rightThumb = getLandmark("Right Thumb");
+
+    const leftFinger = {
+      x : (leftPinky.x + leftThumb.x) / 2,
+      y : (leftPinky.y + leftThumb.y) / 2,
+      z : (leftPinky.z + leftThumb.z) / 2
+    };
+
+    const rightFinger = {
+      x : (rightPinky.x + rightThumb.x) / 2,
+      y : (rightPinky.y + rightThumb.y) / 2,
+      z : (rightPinky.z + rightThumb.z) / 2
+    };
 
     // 목의 상하 경계 설정
     const neckBottomY = (leftShoulder.y + rightShoulder.y) / 2;
     const mouthToNoseDistanceY = Math.abs(mouth.y - nose.y);
-    const neckTopY = mouth.y + 2 * mouthToNoseDistanceY;
+    const neckTopY = mouth.y + 4 * mouthToNoseDistanceY;
 
     // 목의 좌우 경계 설정
     const neckBottomX = (leftShoulder.x + rightShoulder.x) / 2;
     const neckLeftX = neckBottomX + (leftShoulder - rightShoulder) / 4;
     const neckRightX = neckBottomX - (leftShoulder - rightShoulder) / 4;
 
-    // 손목이 목 범위 내에 있는지 확인
-    const isWristInNeckRange = (wrist) => (
-      wrist.y >= neckTopY && wrist.y <= neckBottomY && wrist.x < leftShoulder.x && wrist.x > rightShoulder.x
+    // // 손목이 목 범위 내에 있는지 확인
+    // const isWristInNeckRange = (wrist) => (
+    //   wrist.y >= neckTopY && wrist.y <= neckBottomY && wrist.x < leftShoulder.x && wrist.x > rightShoulder.x
+    // );
+
+    // 손가락이 목 범위 내에 있는지
+    const isFingerInNeckRange = (finger) => (
+      finger.y >= neckTopY && finger.y <= neckBottomY && finger.x < leftShoulder.x && finger.x > rightShoulder.x
     );
 
-    const isTouchingNeck = isWristInNeckRange(leftWrist) || isWristInNeckRange(rightWrist);
+    const isTouchingNeck = isFingerInNeckRange(leftFinger) || isFingerInNeckRange(rightFinger);
+    
     detectAction(buffers.current.touchingNeckBuffer, 'touchingNeck', isTouchingNeck);
-
-    // // 손가락 랜드마크 배열
-    // const leftFingers = [ leftPinky, leftIndex, leftThumb ];
-    // const rightFingers = [ rightPinky, rightIndex, rightThumb ];
-
-    // // 손가락 좌표들의 평균 좌표가 목 범위 내에 있는지 확인
-    // const isHandInNeckRange = (fingers) => {
-    //   const averageCoord = getAverageCoordinate(fingers);
-    //   return averageCoord.y >= neckTopY && averageCoord.y <= neckBottomY &&
-    //     averageCoord.x < leftShoulder.x && averageCoord.x > rightShoulder.x;
-    //     //averageCoord.x < neckLeftX && averageCoord.x > neckRightX;
-    // };
-
-    // const isLeftHandInNeckRange = isHandInNeckRange(leftFingers);
-    // const isRightHandInNeckRange = isHandInNeckRange(rightFingers);
-
-    // if (isLeftHandInNeckRange || isRightHandInNeckRange) {
-    //   // if (isLeftHandInNeckRange) {
-    //   //   console.log('왼손으로 목 만짐');
-    //   // }
-    //   // if (isRightHandInNeckRange) {
-    //   //   console.log('오른손으로 목 만짐');
-    //   // }
-    //   console.log('[목 만지기] 행동이 감지됨');
-    // } else {
-    //   //console.log('[목 만지기] 행동이 감지되지 않음');
-    // }
-
   };
 
   // 얼굴 만지기 동작 인식
@@ -314,32 +227,26 @@ const MotionDetection = ({ isRecording }) => {
 
     const getLandmark = (name) => landmarks.find(l => l.name === name);
 
-    // 손가락 랜드마크 배열
-    const leftHandFingers = ["Left Pinky", "Left Index", "Left Thumb"].map(getLandmark);
-    const rightHandFingers = ["Right Pinky", "Right Index", "Right Thumb"].map(getLandmark);
+    // 손가락 랜드마크
+    const leftIndex = getLandmark("Left Index");
+    const rightIndex = getLandmark("Right Index");
 
     // 얼굴 랜드마크 배열
-    const faceLandmarks = [
-      "Nose", 
-      "Left Eye Inner", "Left Eye", "Left Eye Outer",
-      "Right Eye Inner", "Right Eye", "Right Eye Outer", 
-      "Left Ear", "Right Ear", 
-      "Mouth Left", "Mouth Right"
-    ].map(getLandmark);
+    const faceLandmarks = [ "Nose", "Mouth Left", "Mouth Right" ].map(getLandmark);
 
     // 얼굴 <-> 손가락 거리 기준
-    const FACE_TOUCH_THRESHOLD = 0.6
+    const FACE_TOUCH_THRESHOLD = 0.3
 
     // 얼굴 만지기 동작 감지
-    const isHandInFaceRange = (fingers) => {
-      return fingers.some(finger =>
-        faceLandmarks.some(landmark => calculateDistance(finger, landmark) < FACE_TOUCH_THRESHOLD)
-      );
-    };
+    const isHandInFaceRange = (finger) => {
+      return faceLandmarks.some((faceLandmark) => {
+        return calculateDistance(finger, faceLandmark) <= FACE_TOUCH_THRESHOLD;
+      });
+    };    
 
-    const isFaceTouching = isHandInFaceRange(leftHandFingers) || isHandInFaceRange(rightHandFingers);
+    const isFaceTouching = isHandInFaceRange(leftIndex) || isHandInFaceRange(rightIndex);
+
     detectAction(buffers.current.touchingFaceBuffer, 'touchingFace', isFaceTouching);
-
   };
 
   useEffect(() => {
@@ -378,19 +285,18 @@ const MotionDetection = ({ isRecording }) => {
               }));
 
               // 동작 인식
-              //checkTouchingHead(landmarks);
-              checkWristAboveShoulder(landmarks);
+              checkTouchingHead(landmarks);
               checkTouchingNeck(landmarks);
               checkTouchingFace(landmarks);
 
-              // 관절 위치 그리기 제거
-              // drawingUtils.drawLandmarks(landmarks, {
-              //   radius: (data) => {
-              //     const radius = lerp(data.from.z, -0.15, 0.1, 3, 0.5);
-              //     return radius < 0 ? 0.5 : radius;
-              //   },
-              // });
-              // drawingUtils.drawConnectors(landmarks, PoseLandmarker.POSE_CONNECTIONS);
+              // 관절 위치 그리기
+              drawingUtils.drawLandmarks(landmarks, {
+                radius: (data) => {
+                  const radius = lerp(data.from.z, -0.15, 0.1, 3, 0.5);
+                  return radius < 0 ? 0.5 : radius;
+                },
+              });
+              drawingUtils.drawConnectors(landmarks, PoseLandmarker.POSE_CONNECTIONS);
             } else {
               console.log('No landmarks detected');
             }
