@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+
 import './PatientListPage.css';
-import Header from '../../components/Header';
+
+import { call } from '../../service/ApiService.js';
+import Header from '../../components/Header.js';
 
 const PatientListPage = () => {
   const [patients, setPatients] = useState([]); // 환자 목록을 저장하는 상태
@@ -12,19 +15,8 @@ const PatientListPage = () => {
   useEffect(() => {
     const fetchPatients = async () => {
       try {
-        const response = await fetch('https://talkpossible.site/api/v1/mypage/patients', {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch patients');
-        }
-
-        const data = await response.json();
-        setPatients(data.patients); // API에서 받은 환자 데이터를 상태로 설정
+        const response = await call('/api/v1/mypage/patients', 'GET');
+        setPatients(response["patients"]); // API에서 받은 환자 데이터를 상태로 설정
       } catch (error) {
         console.error('Error fetching patients:', error);
       }
