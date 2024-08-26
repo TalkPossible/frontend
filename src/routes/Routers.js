@@ -6,7 +6,7 @@ import PoseDetection from '../pages/motion/motiondetection';
 import Simulation from '../pages/simulation/simulationpage';
 import LandingPage from "../pages/landing/LandingPage.js";
 import ThemePage from "../pages/theme/ThemePage.js";
-import LoginPage from '../pages/login/LoginPage.js';
+import LoginPage from '../pages/auth/LoginPage.js';
 import FeedbackPage from '../pages/feedback/FeedbackPage.js';
 import PatientListPage from '../pages/mypage/PatientListPage.js';
 import SimulationListPage from '../pages/mypage/SimulationListPage.js';
