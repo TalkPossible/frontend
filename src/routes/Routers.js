@@ -6,7 +6,8 @@ import PoseDetection from '../pages/motion/motiondetection';
 import Simulation from '../pages/simulation/simulationpage';
 import LandingPage from "../pages/landing/LandingPage.js";
 import ThemePage from "../pages/theme/ThemePage.js";
-import LoginPage from '../pages/login/LoginPage.js';
+import LoginPage from '../pages/auth/LoginPage.js';
+import SignUpPage from '../pages/auth/SignUpPage.js';
 import FeedbackPage from '../pages/feedback/FeedbackPage.js';
 import PatientListPage from '../pages/mypage/PatientListPage.js';
 import SimulationListPage from '../pages/mypage/SimulationListPage.js';
@@ -26,11 +27,11 @@ const Routers = () => {
         <Route path="/" element={<LandingPage />} />
         <Route path="/theme" element={<ThemePage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/feedback" element={<FeedbackPage />} />
+        <Route path="/signup" element={<SignUpPage />} />
         <Route path="/patients" element={<PatientListPage />} />
         <Route path="/patients/:id" element={<SimulationListPage />} />
         <Route path="/patientsdetail" element={<PatientDetailPage />} />
-        {/* <Route path="/feedback/:id" element={< />} /> */}
+        <Route path="/feedback/:simId" element={<FeedbackPage />} />
       </Routes>
     </BrowserRouter>
   );

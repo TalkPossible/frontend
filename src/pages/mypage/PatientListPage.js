@@ -12,7 +12,7 @@ const PatientListPage = () => {
   useEffect(() => {
     const fetchPatients = async () => {
       try {
-        const response = await fetch('/api/v1/mypage/patients', {
+        const response = await fetch('https://talkpossible.site/api/v1/mypage/patients', {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
@@ -35,6 +35,7 @@ const PatientListPage = () => {
 
   const handleRowClick = (patient) => {
     setSelectedPatient(patient);
+    localStorage.setItem("patientId", patient.patientId);
   };
 
   const handleSimulationStartClick = () => {
@@ -45,6 +46,7 @@ const PatientListPage = () => {
 
   const handleClosePopup = () => {
     setIsPopupOpen(false);
+    navigate("/theme");
   };
 
   const handleSimulationListClick = () => {

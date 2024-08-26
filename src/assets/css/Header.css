@@ -23,7 +23,7 @@
 }
 
 .group-menu {
-  display: flex; flex-direction:row; justify-content: space-between; align-items: center;
+  display: flex; justify-content: space-between; align-items: center;
   gap:1vw; font-size: 1vw;
 }
 
@@ -57,4 +57,52 @@
 
 .text-color-change-sign:hover::after {
   transform: scaleX(1);
+}
+
+.profile-info {
+  display: flex;
+  position: relative;
+  align-items: center;
+  font-size: 1vw;
+}
+.profile-info > img{
+  width: 2vw;
+  height: 2vw;
+}
+
+.profile-icon {
+  margin-right: 1vw;
+  border-radius: 50%;
+}
+
+.dropdown-icon {
+  margin-left: 1vw;
+}
+
+.dropdown {
+  min-width: 8vw;
+  font-size: 1vw;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  margin-top: 8px;
+}
+
+.dropdown ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.dropdown li {
+  padding: 1vw;
+  cursor: pointer;
+}
+
+.dropdown li:hover {
+  background-color: #f0f0f0;
 }
