@@ -18,6 +18,8 @@ const FeedbackPage = () => {
   const [stutterList, setStutterList] = useState(null);
   const [motionList, setMotionList] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+  
+  let isComponentMounted = true;
 
   const handleNext = () => {
     if (stutterList && stutterList.length > 0) {
@@ -26,6 +28,12 @@ const FeedbackPage = () => {
       );
     }
   };
+
+  useEffect(() => {
+    return () => {
+      isComponentMounted = false;
+    };
+  }, []);
   
   const handlePrev = () => {
     if (stutterList && stutterList.length > 0) {
@@ -123,16 +131,26 @@ const FeedbackPage = () => {
       parentEl.classList.add('fade-out');
 
       setTimeout(() => {
-        parentEl.style.display = 'none'; 
-        menuList.current.style.display = 'flex';
-        menuList.current.classList.add('fade-in');
-
-        setIsAnimating(false);
-        setTimeout(() => {
-          parentEl.classList.remove('fade-out');
-          menuList.current.classList.remove('fade-in');
-        }, 500);  
-      }, 500);  // 애니메이션 지속 시간과 일치하도록 500ms 설정
+        if (!isComponentMounted) return; // 컴포넌트가 언마운트된 경우 콜백 실행을 중단
+      
+        // 이후의 코드가 실행되기 전에 요소들이 여전히 존재하는지 확인
+        if (parentEl && menuList.current) {
+          parentEl.style.display = 'none'; 
+          menuList.current.style.display = 'flex';
+          menuList.current.classList.add('fade-in');
+      
+          setIsAnimating(false);
+          
+          setTimeout(() => {
+            if (!isComponentMounted) return; // 이 콜백도 컴포넌트가 언마운트되었는지 확인
+      
+            if (parentEl && menuList.current) {
+              parentEl.classList.remove('fade-out');
+              menuList.current.classList.remove('fade-in');
+            }
+          }, 500);
+        }
+      }, 500); // 애니메이션 지속 시간과 일치하도록 500ms 설정
     }
   };
   const conversationClicked = () => {

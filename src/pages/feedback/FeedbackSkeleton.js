@@ -61,9 +61,9 @@ export const FdMenuConversationSkeleton = () => {
         <div className="header-title">대화 내용</div>
         <button>&times;</button>
       </div>
-      <div className="part-rest part-scroll">
+      <div className="part-rest part-scroll skeleton">
         {[...Array(3)].map((_, index) => (
-          <div key={index} style={{ display: 'flex', justifyContent: 'flex-start', width: '100%', marginBottom: '10px' }}>
+          <div key={index}>
             <div>Loading...</div>
           </div>
         ))}

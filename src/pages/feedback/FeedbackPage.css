@@ -152,6 +152,13 @@
   padding: 16px 0;
 }
 
+.part-rest.part-scroll.skeleton {
+  display: flex;
+  justify-content: flex-start;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
 .part-rest.part-scroll > p.motion {
   text-align: center;
   margin-bottom: 8px;
