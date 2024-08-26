@@ -152,6 +152,19 @@
   padding: 16px 0;
 }
 
+.part-rest.part-scroll .bubbleBox {
+  display: flex;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.part-rest.part-scroll.skeleton {
+  display: flex;
+  justify-content: flex-start;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
 .part-rest.part-scroll > p.motion {
   text-align: center;
   margin-bottom: 8px;
@@ -167,6 +180,10 @@
   margin-top: 10px;
   display: flex;
   justify-content: space-between;
+}
+
+.fd-menu.menu-voice .btn-pn > button {
+  font-size: 16px;
 }
 
 .fd-menu.menu-conversation, .fd-menu.menu-voice, .fd-menu.menu-motion {
