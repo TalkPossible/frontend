@@ -82,7 +82,7 @@ export function gptAPI (message, cacheId) {
 };
 
 // 사용자 대화 내용 저장 api 호출
-export function userMessageSaveAPI (content) {
+export function saveUserMessageAPI (content) {
   let simulationId = localStorage.getItem('simulationId');
 
   let headers = new Headers({
