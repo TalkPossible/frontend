@@ -4,6 +4,7 @@ import AWS from 'aws-sdk';
 
 import video1 from '../../assets/images/1.mp4';
 import video2 from '../../assets/images/2.mp4';
+import capturepic from '../../assets/images/3.jpg'; // 배경 이미지
 
 import './simulationpage.css';
 
@@ -51,6 +52,8 @@ const SimulationPage = () => {
   const [videoUrl, setVideoUrl] = useState(null);
   const [stream, setStream] = useState(null);
   const [currentVideo, setCurrentVideo] = useState(video1);
+  const [nextVideo, setNextVideo] = useState(null);
+  const [transitioning, setTransitioning] = useState(false);
 
   const navigate = useNavigate();
 
@@ -73,9 +76,36 @@ const SimulationPage = () => {
 
   useEffect(() => {
     if (!userMicDis) {
-      setCurrentVideo(video2);  
+      handleVideoTransition(video2);
     }
   }, [recording]);
+
+  const handleVideoTransition = (newVideo) => {
+    if (currentVideo === newVideo) return;
+
+    setTransitioning(true);
+    setNextVideo(newVideo);
+
+    // 숨겨질 비디오를 z-index로 가리기
+    document.querySelectorAll('.video').forEach((video) => {
+      if (video.src !== newVideo) {
+        video.classList.add('hidden');
+        video.classList.add('hidden-video');
+      }
+    });
+
+    // 새 비디오를 z-index로 보이게 하기
+    setTimeout(() => {
+      setCurrentVideo(newVideo);
+      setNextVideo(null);
+      setTransitioning(false);
+      
+      // 숨겨진 비디오의 z-index를 기본으로 설정
+      document.querySelectorAll('.hidden-video').forEach((video) => {
+        video.classList.remove('hidden-video');
+      });
+    }, 0); // 즉시 전환되도록 설정
+  };
 
   const startSimulation = async () => {
     if (started) return;
@@ -162,15 +192,44 @@ const SimulationPage = () => {
       ) : (
         <div className="simulationContainer">
           <div className="topSection">
-            <video src={currentVideo} autoPlay loop muted className="video" />
+            <div className="video-container">
+              <img
+                src={capturepic}
+                alt="background"
+                className="capturepic"
+              />
+              <video 
+                key={currentVideo} 
+                src={currentVideo} 
+                className={`video ${transitioning ? 'hidden' : ''}`} 
+                autoPlay 
+                loop 
+                muted 
+              />
+              {nextVideo && (
+                <video 
+                  key={nextVideo} 
+                  src={nextVideo} 
+                  className={`video ${transitioning ? '' : 'hidden'}`} 
+                  autoPlay 
+                  loop 
+                  muted 
+                />
+              )}
+            </div>
             <button className="stopButton" onClick={stopSimulation}>종료</button>
           </div>
           <div className="bottomSection">
-            <button className="recordButton disable-hover" disabled={userMicDis} ref={recordButton}
+            <button 
+              className="recordButton disable-hover" 
+              disabled={userMicDis} 
+              ref={recordButton}
               onClick={recording ? handleStopRecording : handleStartRecording}
             >
-              <img className="micImage"
-                src={recording ? "/images/simul/mic_ing.png" : "/images/simul/mic.png"} alt="mic"  
+              <img 
+                className="micImage"
+                src={recording ? "/images/simul/mic_ing.png" : "/images/simul/mic.png"} 
+                alt="mic"  
               />
             </button>
           </div>
