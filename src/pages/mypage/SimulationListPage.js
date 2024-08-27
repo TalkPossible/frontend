@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
 import Header from '../../components/Header.js';
-import { API_BASE_URL } from '../../api/apiConfig.js';
+import { call } from '../../service/ApiService.js';
 
 import './SimulationListPage.css';
 
@@ -15,27 +15,16 @@ const SimulationListPage = () => {
   useEffect(() => {
     const ptSimulData = async () => {
       try {
-        const response = await fetch(API_BASE_URL + `/api/v1/simulations/${id}`, {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch patients');
-        }
-
-        const data = await response.json();
-        setPtName(data["name"]); 
-        setPtSimulList(data["simulations"]); 
+        const response = await call(`/api/v1/simulations/${id}`, 'GET');
+        setPtName(response["name"]); 
+        setPtSimulList(response["simulations"]); 
       } catch (error) {
         console.error('Error fetching patients:', error);
       }
     };
 
     ptSimulData(); 
-  }, []);
+  }, [id]);
 
   const handlePatientListClick = () => {
     navigate('/patients');
@@ -87,7 +76,10 @@ const SimulationListPage = () => {
                     <td>{simulation.stutterCount}</td>
                     <td>{simulation.motionCount}</td>
                   </tr>
-                )) : <tr><td>정보가 없습니다.</td></tr>
+                )) : 
+                <tr>
+                  <td colSpan="7">No simulation data found</td>
+                </tr>
               }
             </tbody>
           </table>

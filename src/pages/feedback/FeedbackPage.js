@@ -1,9 +1,10 @@
 import React, { useRef, useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { API_BASE_URL } from "../../api/apiConfig.js";
 
 import './FeedbackPage.css';
 
+import { API_BASE_URL } from "../../api/apiConfig.js";
+import { call } from "../../service/ApiService.js";
 import Header from "../../components/Header.js";
 import { LeftBubble, RightBubble } from "../../components/ChatBubble.js";
 import StutterCard from "../../components/StutterCard.js";
@@ -34,6 +35,14 @@ const FeedbackPage = () => {
       );
     }
   };
+  
+  let isComponentMounted = true;
+
+  useEffect(() => {
+    return () => {
+      isComponentMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     let headers = new Headers({
@@ -45,62 +54,26 @@ const FeedbackPage = () => {
       headers
     }
     
-    // 시뮬 정보 & 영상 api 호출
-    fetch(API_BASE_URL + `/api/v1/simulations/${simId}/info`, options)
-    .then((res) => {
-      if(!res.ok) {
-        throw new Error('Network response was not ok');
-      }
-      return res.json();
-    })
+    // api 호출
+    call(`/api/v1/simulations/${simId}/info`, 'GET') // 시뮬 정보 & 영상 
     .then((data) => {
       setInfoUrl(data);
     })
-    .catch((error) => {
-      console.error('There was a problem with the fetch operation:', error);
-    });
-    // 대화 내용 api 호출
-    fetch(API_BASE_URL + `/api/v1/simulations/${simId}/conversation`, options)
-    .then((res) => {
-      if(!res.ok) {
-        throw new Error('Network response was not ok');
-      }
-      return res.json();
-    })
+    
+    call(`/api/v1/simulations/${simId}/conversation`, 'GET') // 대화 내용
     .then((data) => {
       setConversationList(data.conversationList);
     })
-    .catch((error) => {
-      console.error('There was a problem with the fetch operation:', error);
-    });
-    // 말더듬 api 호출
-    fetch(API_BASE_URL + `/api/v1/simulations/${simId}/stutter`, options)
-    .then((res) => {
-      if(!res.ok) {
-        throw new Error('Network response was not ok');
-      }
-      return res.json();
-    })
+    
+    call(`/api/v1/simulations/${simId}/stutter`, 'GET') // 말더듬
     .then((data) => {
       setStutterList(data.stutterList);
     })
-    .catch((error) => {
-      console.error('There was a problem with the fetch operation:', error);
-    });
-    // 동작인식 api 호출
-    fetch(API_BASE_URL + `/api/v1/simulations/${simId}/motion`, options)
-    .then((res) => {
-      if(!res.ok) {
-        throw new Error('Network response was not ok');
-      }
-      return res.json();
-    })
+    
+    call(`/api/v1/simulations/${simId}/motion`, 'GET') // 동작인식
     .then((data) => {
       setMotionList(data.motionList);
     })
-    .catch((error) => {
-      console.error('There was a problem with the fetch operation:', error);
-    });
   }, [simId]);
   
   const navigate = useNavigate();
@@ -123,16 +96,26 @@ const FeedbackPage = () => {
       parentEl.classList.add('fade-out');
 
       setTimeout(() => {
-        parentEl.style.display = 'none'; 
-        menuList.current.style.display = 'flex';
-        menuList.current.classList.add('fade-in');
-
-        setIsAnimating(false);
-        setTimeout(() => {
-          parentEl.classList.remove('fade-out');
-          menuList.current.classList.remove('fade-in');
-        }, 500);  
-      }, 500);  // 애니메이션 지속 시간과 일치하도록 500ms 설정
+        if (!isComponentMounted) return; // 컴포넌트가 언마운트된 경우 콜백 실행을 중단
+      
+        // 이후의 코드가 실행되기 전에 요소들이 여전히 존재하는지 확인
+        if (parentEl && menuList.current) {
+          parentEl.style.display = 'none'; 
+          menuList.current.style.display = 'flex';
+          menuList.current.classList.add('fade-in');
+      
+          setIsAnimating(false);
+          
+          setTimeout(() => {
+            if (!isComponentMounted) return; // 이 콜백도 컴포넌트가 언마운트되었는지 확인
+      
+            if (parentEl && menuList.current) {
+              parentEl.classList.remove('fade-out');
+              menuList.current.classList.remove('fade-in');
+            }
+          }, 500);
+        }
+      }, 500); // 애니메이션 지속 시간과 일치하도록 500ms 설정
     }
   };
   const conversationClicked = () => {
@@ -212,7 +195,7 @@ const FeedbackPage = () => {
                 height="100%" 
                 src={infoUrl.videoUrl}
                 frameBorder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                 allowFullScreen>
               </iframe>
             </div>
@@ -263,8 +246,7 @@ const FeedbackPage = () => {
 
               <div className="part-rest part-scroll">
                 {conversationList.map((cnv, index) => (
-                  <div key={index} style={{display: 'flex', justifyContent: cnv.speaker === 'chatgpt' ? 'flex-start' : 'flex-end', 
-                  width: '100%', marginBottom: '10px'}}>
+                  <div key={index} className="bubbleBox" style={{justifyContent: cnv.speaker === 'chatgpt' ? 'flex-start' : 'flex-end'}}>
                     {cnv.speaker === 'chatgpt' ? 
                       <LeftBubble key={index}>{cnv.content}</LeftBubble> :  
                       <RightBubble key={index}>{cnv.content}</RightBubble>}
@@ -285,8 +267,8 @@ const FeedbackPage = () => {
               </div>
 
               <div className="btn-pn" >
-                <button onClick={handlePrev} style={{ fontSize: '16px' }}>Prev</button>
-                <button onClick={handleNext} style={{ fontSize: '16px' }}>Next</button>
+                <button onClick={handlePrev}>Prev</button>
+                <button onClick={handleNext}>Next</button>
               </div>
             </div> : <FdMenuVoiceSkeleton/>
           }
