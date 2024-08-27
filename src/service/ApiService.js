@@ -104,7 +104,7 @@ export function saveUserMessageAPI (content) {
 
   return fetch(options.url, options).then((response) => {
     if(response.status === 200) {
-      console.log("userMessageSaveAPI : ", content);
+      console.log("saveUserMessageAPI : ", content);
       return ;
     } else if(response.status === 401 || 403){
       window.location.href = "/login";
