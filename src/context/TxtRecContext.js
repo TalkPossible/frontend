@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
+import React, { createContext, useState, useEffect, useContext, useCallback, useRef } from 'react';
 import { startRecording, stopRecording } from '../utils/FuncAzureSTT.js';
 import { onRecAudio, offRecAudio, onSubmitAudioFile } from '../utils/FuncRecordUpload.js';
 import { gptAPI, userMessageSaveAPI } from '../service/ApiService.js';
@@ -16,13 +16,10 @@ export const TxtRecProvider = ({ children }) => {
   const [recording, setRecording] = useState(false);
 
   // 음성 녹음 및 녹음 파일을 업로드할 때
-  const [stream, setStream] = useState();
-  const [media, setMedia] = useState();
-  const [onRec, setOnRec] = useState(true);
-  const [source, setSource] = useState();
-  const [analyser, setAnalyser] = useState();
-  const [audioUrl, setAudioUrl] = useState();
   const [fileNames, setFileNames] = useState([]);
+  const [audioBlob, setAudioBlob] = useState(null);
+  const mediaRecorderRef = useRef(null);
+  const audioChunks = useRef([]);
 
   // 사용자 마이크 버튼 비활성화 관리
   const [userMicDis, setUserMicDis] = useState(true); // 마이크 비활성화 상태 
@@ -35,7 +32,7 @@ export const TxtRecProvider = ({ children }) => {
     setRecording(true);
     setUserText('');
 
-    onRecAudio(setStream, setMedia, setOnRec, setSource, setAnalyser, setAudioUrl); // 음성 녹음 시작
+    onRecAudio(setAudioBlob, mediaRecorderRef, audioChunks); // 음성 녹음 시작
     startRecording(handleResult, console.error); // azure stt
   };
 
@@ -44,7 +41,7 @@ export const TxtRecProvider = ({ children }) => {
     setUserMicDis(true); // 사용자 마이크 비활성화
 
     stopRecording();  // 음성 녹음 중지
-    offRecAudio(stream, media, analyser, source, setOnRec); // 녹음 파일 azure storage에 업로드 및 파일 이름 list화 작업 
+    offRecAudio(mediaRecorderRef); // 녹음 파일 azure storage에 업로드 및 파일 이름 list화 작업 
 
     try {
       if (userText !== "") { 
@@ -59,12 +56,12 @@ export const TxtRecProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    if (audioUrl) {
-      onSubmitAudioFile(audioUrl).then(fileName => {
+    if (audioBlob) {
+      onSubmitAudioFile(audioBlob).then(fileName => {
         setFileNames((prevFileNames) => [...prevFileNames, fileName]);
       })
     }
-  }, [audioUrl]);
+  }, [audioBlob]);
   
   useEffect(() => { // GPT의 content가 변경되면 ttsAPI 호출
     if (content !== "") {

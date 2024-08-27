@@ -1,13 +1,13 @@
 .background {
   position:fixed; top:0; width:100vw; height:10vh;
   opacity:0.6; background:white;
-  z-index: 100;
+  z-index: 500;
 }
 
 .foreground {
   position:fixed; top:0; width:100vw; height:10vh;
   backdrop-filter:blur(10px);
-  z-index: 100;
+  z-index: 500;
 }
 
 .header {

@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+
 import './PatientDetailPage.css';
-import Header from '../../components/Header';
+
+import { call } from '../../service/ApiService.js';
+import Header from '../../components/Header.js';
 
 const PatientDetailPage = () => {
   const [patients, setPatients] = useState([]);
@@ -12,28 +15,8 @@ const PatientDetailPage = () => {
   useEffect(() => {
     const fetchPatients = async () => {
       try {
-        const response = await fetch('https://talkpossible.site/api/v1/mypage/patients', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          }
-        });
-
-        if (!response.ok) {
-          const text = await response.text();
-          console.log('Received non-JSON response:', text);
-          throw new Error(`Failed to fetch patients: ${response.status} ${response.statusText}`);
-        }
-
-        const contentType = response.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json")) {
-          throw new TypeError("Received content is not JSON");
-        }
-
-        const data = await response.json();
-        console.log('Fetched data:', data); //data 출력 확인용
-        setPatients(data.patients); 
+        const response = await call('/api/v1/mypage/patients', 'GET');
+        setPatients(response["patients"]); 
       } catch (error) {
         console.error('Error fetching patients:', error.message);
       }

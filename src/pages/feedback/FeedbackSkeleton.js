@@ -1,7 +1,6 @@
 import { Button } from '@chakra-ui/react';
 import React from 'react';
 
-// FdMain Skeleton Component
 export const FdMainSkeleton = () => {
   return (
     <div className="fd-main">
@@ -17,16 +16,15 @@ export const FdMainSkeleton = () => {
   );
 };
 
-// FdMenuList Skeleton Component
 export const FdMenuListSkeleton = () => {
   return (
     <div className="fd-menu menu-list">
       <div className="sub-menu">
         <p className="header-title">menu</p>
         <div className="menu-box">
-          <div></div>
-          <div></div>
-          <div></div>
+          <div>대화 내용</div>
+          <div>음성 피드백</div>
+          <div>행동 피드백</div>
         </div>
       </div>
       <div className="sub-info">
@@ -47,13 +45,12 @@ export const FdMenuListSkeleton = () => {
         </div>
       </div>
       <div className="menu-footer">
-        <button className="fd-confirmBtn">Loading...</button>
+        <button className="fd-confirmBtn">확인완료</button>
       </div>
     </div>
   );
 };
 
-// FdMenuConversation Skeleton Component
 export const FdMenuConversationSkeleton = () => {
   return (
     <div className="fd-menu menu-conversation">
@@ -61,9 +58,9 @@ export const FdMenuConversationSkeleton = () => {
         <div className="header-title">대화 내용</div>
         <button>&times;</button>
       </div>
-      <div className="part-rest part-scroll">
+      <div className="part-rest part-scroll skeleton">
         {[...Array(3)].map((_, index) => (
-          <div key={index} style={{ display: 'flex', justifyContent: 'flex-start', width: '100%', marginBottom: '10px' }}>
+          <div key={index}>
             <div>Loading...</div>
           </div>
         ))}
@@ -72,7 +69,6 @@ export const FdMenuConversationSkeleton = () => {
   );
 };
 
-// FdMenuVoice Skeleton Component
 export const FdMenuVoiceSkeleton = () => {
   return (
     <div className="fd-menu menu-voice">
@@ -91,7 +87,6 @@ export const FdMenuVoiceSkeleton = () => {
   );
 };
 
-// FdMenuMotion Skeleton Component
 export const FdMenuMotionSkeleton = () => {
   return (
     <div className="fd-menu menu-motion">
