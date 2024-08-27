@@ -188,11 +188,6 @@ const SimulationPage = () => {
     console.log('*** startTime: ' + startTime);
 
 
-    setVideoUrl(null); // 이전 비디오 URL 초기화
-    startTime.current = new Date();
-    console.log('*** startTime: ' + startTime);
-
-
     try {
       const userMediaStream = await navigator.mediaDevices.getUserMedia({
         video: true,
@@ -224,12 +219,10 @@ const SimulationPage = () => {
         try {
           const s3Url = await uploadToS3(blob);
 
-
           setVideoUrl(s3Url); // S3 URL로 업데이트
 
           // 백엔드로 데이터 전송
           await postMotionData(motions, s3Url, simulationTime);
-
 
 
         } catch (error) {
@@ -247,7 +240,6 @@ const SimulationPage = () => {
 
       recorder.start();
       setStarted(true);
-
 
       setIsRecording(true); // MotionDetection 시작
 
