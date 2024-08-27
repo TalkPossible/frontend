@@ -62,7 +62,7 @@ export function gptAPI (message, cacheId) {
   return fetch(options.url, options).then((response) => {
     if(response.status === 200) {
       return response.json();
-    } else if(response.status === 403){
+    } else if(response.status === 401 || 403){
       window.location.href = "/login";
     } else {
       Promise.reject(response);
@@ -106,7 +106,7 @@ export function saveUserMessageAPI (content) {
     if(response.status === 200) {
       console.log("userMessageSaveAPI : ", content);
       return ;
-    } else if(response.status === 403){
+    } else if(response.status === 401 || 403){
       window.location.href = "/login";
     } else {
       Promise.reject(response);
