@@ -62,7 +62,7 @@ export function gptAPI (message, cacheId) {
   return fetch(options.url, options).then((response) => {
     if(response.status === 200) {
       return response.json();
-    } else if(response.status === 403){
+    } else if(response.status === 401 || 403){
       window.location.href = "/login";
     } else {
       Promise.reject(response);
@@ -82,7 +82,7 @@ export function gptAPI (message, cacheId) {
 };
 
 // 사용자 대화 내용 저장 api 호출
-export function userMessageSaveAPI (content) {
+export function saveUserMessageAPI (content) {
   let simulationId = localStorage.getItem('simulationId');
 
   let headers = new Headers({
@@ -104,9 +104,45 @@ export function userMessageSaveAPI (content) {
 
   return fetch(options.url, options).then((response) => {
     if(response.status === 200) {
-      console.log("userMessageSaveAPI : ", content);
+      console.log("saveUserMessageAPI : ", content);
       return ;
-    } else if(response.status === 403){
+    } else if(response.status === 401 || 403){
+      window.location.href = "/login";
+    } else {
+      Promise.reject(response);
+      throw Error(response);
+    }
+  }).catch((error) => {
+    console.log("[http error]", error);
+  });
+}
+
+// 오디오 파일명 리스트 보내기 api 호출
+export function sendAudioFileNameListAPI (nameList) {
+  let simulationId = localStorage.getItem('simulationId');
+
+  let headers = new Headers({
+    "simulationId": simulationId,
+    "Authorization": `Bearer ${localStorage.getItem('accessToken')}`,
+    "Content-Type": "application/json",
+  });
+
+  let body = JSON.stringify({
+    "audioFileNameList": nameList,
+  })
+
+  let options = {
+    url: API_BASE_URL + `/simulations/${simulationId}/speech-rate`,
+    headers,
+    method: 'POST',
+    body
+  };
+
+  return fetch(options.url, options).then((response) => {
+    if(response.status === 200) {
+      console.log("[sendAudioFileNameListAPI] 오디오 파일명 리스트 보내기 성공");
+      return ;
+    } else if(response.status === 403){ // 401 ||
       window.location.href = "/login";
     } else {
       Promise.reject(response);

@@ -4,16 +4,13 @@ import AWS from 'aws-sdk';
 
 import video1 from '../../assets/images/1.mp4';
 import video2 from '../../assets/images/2.mp4';
-import capturepic from '../../assets/images/3.jpg'; // 배경 이미지
-
-import MotionDetection from '../motion/motiondetection';
+import capturepic from '../../assets/images/3.jpg'; 
 
 import './simulationpage.css';
 
-import { gptAPI } from "../../service/ApiService.js";
+import MotionDetection from '../motion/motiondetection.js';
+import { gptAPI, sendAudioFileNameListAPI } from "../../service/ApiService.js";
 import { useTxtRec } from '../../context/TxtRecContext.js';
-
-
 import { API_BASE_URL } from "../../api/apiConfig.js";
 
 // AWS S3 설정 함수
@@ -265,6 +262,7 @@ const SimulationPage = () => {
     if (mediaRecorder && mediaRecorder.state !== "inactive") {
       ttsStop();
       console.log("[상황종료] 파일명 리스트 : ", fileNames);
+      sendAudioFileNameListAPI(fileNames);
       mediaRecorder.stop();
       navigate('/');
     } else {
@@ -278,7 +276,7 @@ const SimulationPage = () => {
         <>
           <div className="description">
             <span>말하는 도중</span> 또는 <span>발화 직후</span> 녹음중지 버튼을 누르면 <br/>
-            마지막 발화를 인지하지 못 할 수 있느니 <br/>
+            마지막 발화를 인지하지 못 할 수 있으니 <br/>
             <span>텀</span>을 두고 버튼을 클릭해주세요.
           </div>
           <button className="startButton" onClick={startSimulation}>

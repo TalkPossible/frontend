@@ -1,7 +1,7 @@
 import React, { createContext, useState, useEffect, useContext, useCallback, useRef } from 'react';
 import { startRecording, stopRecording } from '../utils/FuncAzureSTT.js';
 import { onRecAudio, offRecAudio, onSubmitAudioFile } from '../utils/FuncRecordUpload.js';
-import { gptAPI, userMessageSaveAPI } from '../service/ApiService.js';
+import { gptAPI, saveUserMessageAPI } from '../service/ApiService.js';
 import { ttsAPI, ttsStop } from '../utils/FuncGoogleTTS.js';
 
 const TxtRecContext = createContext();
@@ -45,7 +45,7 @@ export const TxtRecProvider = ({ children }) => {
 
     try {
       if (userText !== "") { 
-        await userMessageSaveAPI(userText); // 백엔드 api 호출 : 1. 사용자 텍스트 전송 호출
+        await saveUserMessageAPI(userText); // 백엔드 api 호출 : 1. 사용자 텍스트 전송 호출
       } 
       const newRes = await gptAPI(userText, cacheId) // 백엔드 api 호출 : 2. gpt와 대화하기 호출
       setCacheId(newRes.newCacheId);

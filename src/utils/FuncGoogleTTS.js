@@ -11,8 +11,8 @@ export function ttsAPI(content, setUserMicDis) {
   var data = {    
     "voice":{
       "languageCode":"ko-KR",
-      'name':'ko-KR-Neural2-C',
-      'ssmlGender':'MALE'
+      'name':'ko-KR-Neural2-A',
+      'ssmlGender':'FEMALE'
     },
     "input":{
       "text": content
