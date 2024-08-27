@@ -142,7 +142,7 @@ export function sendAudioFileNameListAPI (nameList) {
     if(response.status === 200) {
       console.log("[sendAudioFileNameListAPI] 오디오 파일명 리스트 보내기 성공");
       return ;
-    } else if(response.status === 401 || 403){
+    } else if(response.status === 403){ // 401 ||
       window.location.href = "/login";
     } else {
       Promise.reject(response);
