@@ -116,3 +116,39 @@ export function saveUserMessageAPI (content) {
     console.log("[http error]", error);
   });
 }
+
+// 오디오 파일명 리스트 보내기 api 호출
+export function sendAudioFileNameListAPI (nameList) {
+  let simulationId = localStorage.getItem('simulationId');
+
+  let headers = new Headers({
+    "simulationId": simulationId,
+    "Authorization": `Bearer ${localStorage.getItem('accessToken')}`,
+    "Content-Type": "application/json",
+  });
+
+  let body = JSON.stringify({
+    "audioFileNameList": nameList,
+  })
+
+  let options = {
+    url: API_BASE_URL + `/simulations/${simulationId}/speech-rate`,
+    headers,
+    method: 'POST',
+    body
+  };
+
+  return fetch(options.url, options).then((response) => {
+    if(response.status === 200) {
+      console.log("[sendAudioFileNameListAPI] 오디오 파일명 리스트 보내기 성공");
+      return ;
+    } else if(response.status === 401 || 403){
+      window.location.href = "/login";
+    } else {
+      Promise.reject(response);
+      throw Error(response);
+    }
+  }).catch((error) => {
+    console.log("[http error]", error);
+  });
+}
