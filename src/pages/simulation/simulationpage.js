@@ -1,16 +1,23 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AWS from 'aws-sdk';
+
+import video1 from '../../assets/images/1.mp4';
+import video2 from '../../assets/images/2.mp4';
+import capturepic from '../../assets/images/3.jpg'; // 배경 이미지
+
 import MotionDetection from '../motion/motiondetection';
-import conversationImage from '../../assets/images/simultest.jpg';
+
 import './simulationpage.css';
 
 import { gptAPI } from "../../service/ApiService.js";
 import { useTxtRec } from '../../context/TxtRecContext.js';
 
+
 import { API_BASE_URL } from "../../api/apiConfig.js";
 
 // AWS S3 설정 함수
+
 const configureS3 = () => {
   const REGION = process.env.REACT_APP_MOTION_S3_REGION;
   const ACCESS_KEY = process.env.REACT_APP_MOTION_S3_ACCESS_KEY;
@@ -25,17 +32,14 @@ const configureS3 = () => {
   return new AWS.S3();
 };
 
-// 비디오를 S3에 업로드하는 함수
 const uploadToS3 = async (blob) => {
-  const s3 = configureS3(); // AWS S3 설정
+  const s3 = configureS3();
   const params = {
-    Bucket: process.env.REACT_APP_MOTION_S3_BUCKET_NAME, // 비디오를 업로드할 버킷
-    Key: `video/${Date.now()}.webm`, // 비디오 파일을 video 폴더에 업로드
+    Bucket: process.env.REACT_APP_MOTION_S3_BUCKET_NAME,
+    Key: `video/${Date.now()}.webm`,
     Body: blob,
     ContentType: 'video/webm',
   };
-
-  console.log("Uploading to S3 with params:", params); // 디버깅을 위해 콘솔 출력
 
   return new Promise((resolve, reject) => {
     s3.upload(params, (err, data) => {
@@ -43,7 +47,7 @@ const uploadToS3 = async (blob) => {
         console.error("Error uploading video to S3: ", err);
         reject(err);
       } else {
-        resolve(data.Location); // 업로드된 비디오의 URL 반환
+        resolve(data.Location);
       }
     });
   });
@@ -107,6 +111,9 @@ const SimulationPage = () => {
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [videoUrl, setVideoUrl] = useState(null);
   const [stream, setStream] = useState(null);
+  const [currentVideo, setCurrentVideo] = useState(video1);
+  const [nextVideo, setNextVideo] = useState(null);
+  const [transitioning, setTransitioning] = useState(false);
 
   const [isRecording, setIsRecording] = useState(false);
 
@@ -124,28 +131,67 @@ const SimulationPage = () => {
     if (recordButton.current) {
       if (userMicDis) {
         recordButton.current.classList.add('disable-hover');
+        setCurrentVideo(video1);
       } else {
         recordButton.current.classList.remove('disable-hover');
+        setCurrentVideo(video2);  
       }
     }
   }, [userMicDis]);
 
+
+  useEffect(() => {
+    if (!userMicDis) {
+      handleVideoTransition(video2);
+    }
+  }, [recording]);
+
+  const handleVideoTransition = (newVideo) => {
+    if (currentVideo === newVideo) return;
+
+    setTransitioning(true);
+    setNextVideo(newVideo);
+
+    // 숨겨질 비디오를 z-index로 가리기
+    document.querySelectorAll('.video').forEach((video) => {
+      if (video.src !== newVideo) {
+        video.classList.add('hidden');
+        video.classList.add('hidden-video');
+      }
+    });
+
+    // 새 비디오를 z-index로 보이게 하기
+    setTimeout(() => {
+      setCurrentVideo(newVideo);
+      setNextVideo(null);
+      setTransitioning(false);
+      
+      // 숨겨진 비디오의 z-index를 기본으로 설정
+      document.querySelectorAll('.hidden-video').forEach((video) => {
+        video.classList.remove('hidden-video');
+      });
+    }, 0); // 즉시 전환되도록 설정
+  }
+
   const calculateTotalTime = (start, end) => {
     const diff = new Date(end.current - start.current);
     return diff.toISOString().slice(11, 19); // HH:mm:ss 형식으로 반환
+
   };
 
   const startSimulation = async () => {
-    if (started) return; // 이미 시작된 경우 중복 호출 방지
+    if (started) return;
+
 
     setVideoUrl(null); // 이전 비디오 URL 초기화
     startTime.current = new Date();
     console.log('*** startTime: ' + startTime);
 
+
     try {
       const userMediaStream = await navigator.mediaDevices.getUserMedia({
         video: true,
-        audio: true, // 오디오 포함
+        audio: true,
       });
 
       const recorder = new MediaRecorder(userMediaStream);
@@ -170,13 +216,14 @@ const SimulationPage = () => {
         // 세션 스토리지에서 동작 감지 내역 가져오기
         const motions = JSON.parse(sessionStorage.getItem('motions')) || [];
 
-        // 업로드 및 URL 업데이트
         try {
           const s3Url = await uploadToS3(blob);
+
           setVideoUrl(s3Url); // S3 URL로 업데이트
 
           // 백엔드로 데이터 전송
           await postMotionData(motions, s3Url, simulationTime);
+
 
         } catch (error) {
           console.error("Error uploading video to S3: ", error);
@@ -193,9 +240,11 @@ const SimulationPage = () => {
 
       recorder.start();
       setStarted(true);
+
       setIsRecording(true); // MotionDetection 시작
 
       // 백엔드 api 호출 : gpt와 대화하기 : gpt의 답변을 먼저 받기 위해 started==true일 때 빈 문자열을 보냄 (처음 한번만 실행)
+
       gptAPI("", null).then(newResponse => {
         setCacheId(newResponse.newCacheId);
         setContent(newResponse.newContent);
@@ -239,15 +288,44 @@ const SimulationPage = () => {
       ) : (
         <div className="simulationContainer">
           <div className="topSection">
-            <img src={conversationImage} alt="Conversation Partner" className="image" />
+            <div className="video-container">
+              <img
+                src={capturepic}
+                alt="background"
+                className="capturepic"
+              />
+              <video 
+                key={currentVideo} 
+                src={currentVideo} 
+                className={`video ${transitioning ? 'hidden' : ''}`} 
+                autoPlay 
+                loop 
+                muted 
+              />
+              {nextVideo && (
+                <video 
+                  key={nextVideo} 
+                  src={nextVideo} 
+                  className={`video ${transitioning ? '' : 'hidden'}`} 
+                  autoPlay 
+                  loop 
+                  muted 
+                />
+              )}
+            </div>
             <button className="stopButton" onClick={stopSimulation}>종료</button>
           </div>
           <div className="bottomSection">
-            <button className="recordButton disable-hover" disabled={userMicDis} ref={recordButton}
+            <button 
+              className="recordButton disable-hover" 
+              disabled={userMicDis} 
+              ref={recordButton}
               onClick={recording ? handleStopRecording : handleStartRecording}
             >
-              <img className="micImage"
-                src={recording ? "/images/simul/mic_ing.png" : "/images/simul/mic.png"} alt="mic"  
+              <img 
+                className="micImage"
+                src={recording ? "/images/simul/mic_ing.png" : "/images/simul/mic.png"} 
+                alt="mic"  
               />
             </button>
           </div>
@@ -265,4 +343,7 @@ const SimulationPage = () => {
   );
 }
 
+
 export default SimulationPage;
+
+
