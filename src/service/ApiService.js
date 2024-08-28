@@ -82,7 +82,7 @@ export function gptAPI (message, cacheId) {
 };
 
 // 사용자 대화 내용 저장 api 호출
-export function saveUserMessageAPI (content) {
+export function sendNameAPI (fileName) {
   let simulationId = localStorage.getItem('simulationId');
 
   let headers = new Headers({
@@ -92,8 +92,7 @@ export function saveUserMessageAPI (content) {
   });
 
   let body = JSON.stringify({
-    "content": content,
-    "vName": "2024-08-26T19_26_41_317Z.wav"
+    "vName": fileName //"2024-08-26T19_26_41_317Z.wav"
   })
 
   let options = {
@@ -105,7 +104,7 @@ export function saveUserMessageAPI (content) {
 
   return fetch(options.url, options).then((response) => {
     if(response.status === 200) {
-      console.log("saveUserMessageAPI : ", content);
+      console.log("sendNameAPI : ", fileName);
       return ;
     } else if(response.status === 401 || 403){
       window.location.href = "/login";

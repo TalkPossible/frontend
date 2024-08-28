@@ -1,7 +1,7 @@
 import React, { createContext, useState, useEffect, useContext, useCallback, useRef } from 'react';
 import { startRecording, stopRecording } from '../utils/FuncAzureSTT.js';
 import { onRecAudio, offRecAudio } from '../utils/FuncRecordUpload.js';
-import { gptAPI, saveUserMessageAPI } from '../service/ApiService.js';
+import { gptAPI, sendNameAPI } from '../service/ApiService.js';
 import { ttsAPI, ttsStop } from '../utils/FuncGoogleTTS.js';
 
 const TxtRecContext = createContext();
@@ -44,11 +44,7 @@ export const TxtRecProvider = ({ children }) => {
     await offRecAudio(mediaRecorderRef); // 녹음 파일 azure storage에 업로드 및 파일 이름 list화 작업 
 
     try {
-      if (userText !== "") { 
-        await saveUserMessageAPI(userText); // 백엔드 api 호출 : 1. 사용자 텍스트 및 음성 파일명 전송 호출
-        console.log("방금 음성 파일명: ", fileName);
-      } 
-      const newRes = await gptAPI(userText, cacheId) // 백엔드 api 호출 : 2. gpt와 대화하기 호출
+      const newRes = await gptAPI(userText, cacheId) // 백엔드 api 호출 : 1. gpt와 대화하기 호출
       setCacheId(newRes.newCacheId);
       setContent(newRes.newContent);
     } catch (error) {
@@ -57,8 +53,10 @@ export const TxtRecProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    if (fileName) {
+    if (fileName && userText !== "") {
       setFileNameList((prevFileNameList) => [...prevFileNameList, fileName]);
+      console.log("방금 음성 파일명: ", fileName);
+      sendNameAPI(fileName); // 백엔드 (변경된) api 호출 : 2. 음성 파일명 전송 호출
     }
   }, [fileName]);
   
