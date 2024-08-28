@@ -6,7 +6,7 @@ const storageSasTokenAzure = process.env.REACT_APP_AZURE_STORAGE_SAS_TOKEN;
 
 // ==============================================================================
 
-export const onRecAudio = async (setAudioBlob, mediaRecorderRef, audioChunks) => {
+export const onRecAudio = async (setFileName, mediaRecorderRef, audioChunks) => {
   const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
   mediaRecorderRef.current = new MediaRecorder(stream);
 
@@ -17,7 +17,9 @@ export const onRecAudio = async (setAudioBlob, mediaRecorderRef, audioChunks) =>
   mediaRecorderRef.current.onstop = async () => {
     const blob = new Blob(audioChunks.current, { type: 'audio/webm' });
     const wavBlob = await convertBlobToWav(blob);
-    setAudioBlob(wavBlob);
+    const blobName = await onSubmitAudioFile(wavBlob);
+    console.log("blobName ", blobName);
+    await setFileName(blobName);
     audioChunks.current = [];
   };
 
@@ -26,8 +28,8 @@ export const onRecAudio = async (setAudioBlob, mediaRecorderRef, audioChunks) =>
 
 // ==============================================================================
 
-export const offRecAudio = (mediaRecorderRef) => {
-  mediaRecorderRef.current.stop();
+export const offRecAudio = async (mediaRecorderRef) => {
+  await mediaRecorderRef.current.stop();
 };
 
 // ==============================================================================

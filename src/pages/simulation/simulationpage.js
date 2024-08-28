@@ -119,7 +119,7 @@ const SimulationPage = () => {
 
   const navigate = useNavigate();
 
-  const { ttsStop, fileNames, userMicDis, setCacheId, setContent, 
+  const { ttsStop, fileNameList, userMicDis, setCacheId, setContent, 
     recording, handleStartRecording, handleStopRecording } = useTxtRec();
 
   const recordButton = useRef(null);
@@ -261,8 +261,8 @@ const SimulationPage = () => {
   const stopSimulation = () => {
     if (mediaRecorder && mediaRecorder.state !== "inactive") {
       ttsStop();
-      console.log("[상황종료] 파일명 리스트 : ", fileNames);
-      sendAudioFileNameListAPI(fileNames);
+      console.log("[상황종료] 파일명 리스트 : ", fileNameList);
+      sendAudioFileNameListAPI(fileNameList);
       mediaRecorder.stop();
       navigate('/');
     } else {
