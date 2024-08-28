@@ -73,7 +73,7 @@ export const TxtRecProvider = ({ children }) => {
   }, [cacheId, content]);
 
   return (
-    <TxtRecContext.Provider value={{ ttsStop, fileNames, setUserMicDis, userMicDis, 
+    <TxtRecContext.Provider value={{ ttsStop, fileNameList, setUserMicDis, userMicDis, 
       setCacheId, setContent, recording, handleStartRecording, handleStopRecording }}>
       {children}
     </TxtRecContext.Provider>
