@@ -119,7 +119,7 @@ export function saveUserMessageAPI (content, vName) {
 }
 
 // 오디오 파일명 리스트 보내기 api 호출
-export function sendAudioFileNameListAPI (nameList) {
+export function sendAudioFileNameListAPI (nameList = []) {
   let simulationId = localStorage.getItem('simulationId');
 
   let headers = new Headers({
