@@ -93,6 +93,7 @@ export function saveUserMessageAPI (content) {
 
   let body = JSON.stringify({
     "content": content,
+    "vName": "2024-08-26T19_26_41_317Z.wav"
   })
 
   let options = {
@@ -132,7 +133,7 @@ export function sendAudioFileNameListAPI (nameList = []) {
   })
 
   let options = {
-    url: API_BASE_URL + `/simulations/${simulationId}/speech-rate`,
+    url: API_BASE_URL + `/api/v1/simulations/${simulationId}/speech-rate`,
     headers,
     method: 'POST',
     body
