@@ -55,7 +55,7 @@ const postMotionData = async (motions, videoUrl, simulationTime) => {
 
     // motionList 생성
     const motionList = motions.length > 0 ? motions.map(motion => ({
-      actionName: motion.motionName,
+      motionName: motion.motionName,
       timestamp: motion.timestamp,
     })) : [];
 
