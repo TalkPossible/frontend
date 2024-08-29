@@ -119,7 +119,7 @@ const MotionDetection = ({ isRecording }) => {
         //console.log(`[${actionType}] 동작이 처음 감지됨! actionStartTime:`, actionStartTimes.current[actionType]);
       } else {
         const actionTime = calculateActionTime(actionStartTimes.current[actionType]);
-        console.log(`[${actionType}] 동작이 연속적으로 감지됨! actionTime:`, actionTime);
+        //console.log(`[${actionType}] 동작이 연속적으로 감지됨! actionTime:`, actionTime);
   
         if (actionTime >= duration) {
           console.log(`[${actionType}] 동작이 ${duration}초 이상 지속됨! actionTime:`, actionTime);
@@ -267,7 +267,7 @@ const MotionDetection = ({ isRecording }) => {
         video.height = videoHeight;
 
         const detect = () => {
-          if (!poseLandmarker) return;
+          if (!poseLandmarker || !isRecording) return;
 
           const startTimeMs = performance.now();
           poseLandmarker.detectForVideo(video, startTimeMs, (result) => {
@@ -288,12 +288,12 @@ const MotionDetection = ({ isRecording }) => {
               checkTouchingFace(landmarks);
 
               // 관절 위치 그리기
-              drawingUtils.drawLandmarks(landmarks, {
-                radius: (data) => {
-                  const radius = lerp(data.from.z, -0.15, 0.1, 3, 0.5);
-                  return radius < 0 ? 0.5 : radius;
-                },
-              });
+              // drawingUtils.drawLandmarks(landmarks, {
+              //   radius: (data) => {
+              //     const radius = lerp(data.from.z, -0.15, 0.1, 3, 0.5);
+              //     return radius < 0 ? 0.5 : radius;
+              //   },
+              // });
               drawingUtils.drawConnectors(landmarks, PoseLandmarker.POSE_CONNECTIONS);
             } else {
               console.log('No landmarks detected');
