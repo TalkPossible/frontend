@@ -104,7 +104,7 @@ export function sendNameAPI (fileName) {
 
   return fetch(options.url, options).then((response) => {
     if(response.status === 200) {
-      console.log("sendNameAPI : ", fileName);
+      // console.log("sendNameAPI : ", fileName);
       return ;
     } else if(response.status === 401 || 403){
       window.location.href = "/login";
@@ -140,7 +140,7 @@ export function sendAudioFileNameListAPI (nameList = []) {
 
   return fetch(options.url, options).then((response) => {
     if(response.status === 200) {
-      console.log("[sendAudioFileNameListAPI] 오디오 파일명 리스트 보내기 성공");
+      // console.log("[sendAudioFileNameListAPI] 오디오 파일명 리스트 보내기 성공");
       return ;
     } else if(response.status === 403){ // 401 ||
       window.location.href = "/login";

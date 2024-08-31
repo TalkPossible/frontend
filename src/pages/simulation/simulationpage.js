@@ -75,7 +75,7 @@ const postMotionData = async (motions, videoUrl, simulationTime) => {
         videoUrl,
         totalTime 
       });
-      console.log("body: ", body);
+      // console.log("body: ", body);
   
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -93,7 +93,7 @@ const postMotionData = async (motions, videoUrl, simulationTime) => {
         throw new Error(`Failed to send motion data: ${errorText}`);
       }
   
-      console.log('Motion data sent successfully!');
+      // console.log('Motion data sent successfully!');
   
       // 성공적으로 전송 후 세션 스토리지 비우기
       sessionStorage.removeItem('motions');
@@ -182,7 +182,7 @@ const SimulationPage = () => {
 
     setVideoUrl(null); // 이전 비디오 URL 초기화
     startTime.current = new Date();
-    console.log('*** startTime: ' + startTime);
+    // console.log('*** startTime: ' + startTime);
 
 
     try {
@@ -205,7 +205,7 @@ const SimulationPage = () => {
       recorder.onstop = async () => {
 
         endTime.current = new Date(); // 시뮬레이션 종료 시각 기록
-        console.log('*** endTime: ' + endTime);
+        // console.log('*** endTime: ' + endTime);
         const simulationTime = calculateTotalTime(startTime, endTime); // 시뮬레이션 진행 시간 계산
 
         const blob = new Blob(chunks, { type: 'video/webm' });
@@ -261,7 +261,7 @@ const SimulationPage = () => {
   const stopSimulation = () => {
     if (mediaRecorder && mediaRecorder.state !== "inactive") {
       ttsStop();
-      console.log("[상황종료] 파일명 리스트 : ", fileNameList);
+      // console.log("[상황종료] 파일명 리스트 : ", fileNameList);
       sendAudioFileNameListAPI(fileNameList);
       mediaRecorder.stop();
       navigate('/');

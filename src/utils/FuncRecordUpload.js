@@ -18,7 +18,7 @@ export const onRecAudio = async (setFileName, mediaRecorderRef, audioChunks) => 
     const blob = new Blob(audioChunks.current, { type: 'audio/webm' });
     const wavBlob = await convertBlobToWav(blob);
     const blobName = await onSubmitAudioFile(wavBlob);
-    console.log("blobName ", blobName);
+    // console.log("blobName ", blobName);
     await setFileName(blobName);
     audioChunks.current = [];
   };

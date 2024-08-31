@@ -55,7 +55,7 @@ export const TxtRecProvider = ({ children }) => {
   useEffect(() => {
     if (fileName && userText !== "") {
       setFileNameList((prevFileNameList) => [...prevFileNameList, fileName]);
-      console.log("방금 음성 파일명: ", fileName);
+      // console.log("방금 음성 파일명: ", fileName);
       sendNameAPI(fileName); // 백엔드 (변경된) api 호출 : 2. 음성 파일명 전송 호출
     }
   }, [fileName]);
