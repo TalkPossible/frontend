@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import './LoginPage.css';
+import { API_BASE_URL } from '../../api/apiConfig';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -13,7 +14,7 @@ const LoginPage = () => {
   const handleLogin = async () => {
     setError(null); 
     try {
-      const response = await fetch('https://talkpossible.site/api/v1/auth/login', {
+      const response = await fetch(API_BASE_URL + '/api/v1/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
