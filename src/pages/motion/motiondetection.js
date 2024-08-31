@@ -74,10 +74,15 @@ const MotionDetection = ({ isRecording }) => {
 
   // 동작 timestamp '분:초' 형식으로 변환
   const formatElapsedTime = (totalSeconds) => {
-    const minutes = Math.floor(totalSeconds / 60);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
     const seconds = Math.floor(totalSeconds % 60);
-    return minutes + ':' + seconds;
-  };
+
+    // 시, 분, 초를 2자리 수로 맞추기 위해 padStart 사용
+    return String(hours).padStart(2, '0') + ':' + 
+           String(minutes).padStart(2, '0') + ':' + 
+           String(seconds).padStart(2, '0');
+};
 
   const actionTypeToName = {
     touchingHead: "머리 만지기",
