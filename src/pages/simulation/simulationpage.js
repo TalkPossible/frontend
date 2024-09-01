@@ -262,7 +262,9 @@ const SimulationPage = () => {
     if (mediaRecorder && mediaRecorder.state !== "inactive") {
       ttsStop();
       // console.log("[상황종료] 파일명 리스트 : ", fileNameList);
-      sendAudioFileNameListAPI(fileNameList);
+      setTimeout(() => {
+        sendAudioFileNameListAPI(fileNameList);
+      }, 10000);
       mediaRecorder.stop();
       navigate('/');
     } else {
