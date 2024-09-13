@@ -6,7 +6,16 @@ const storageSasTokenAzure = process.env.REACT_APP_AZURE_STORAGE_SAS_TOKEN;
 
 // ==============================================================================
 
-export const onRecAudio = async (setFileName, mediaRecorderRef, audioChunks) => {
+const onRecAudio = async (setFileName, mediaRecorderRef, audioChunks) => {
+  // 이전 녹음이 진행 중이라면 중지
+  if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+    mediaRecorderRef.current.stop();  // 기존 녹음을 중지
+  }
+
+  // 기존 audioChunks 비우기
+  audioChunks.current = [];
+
+  // 새로운 녹음 시작
   const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
   mediaRecorderRef.current = new MediaRecorder(stream);
 
@@ -28,13 +37,15 @@ export const onRecAudio = async (setFileName, mediaRecorderRef, audioChunks) => 
 
 // ==============================================================================
 
-export const offRecAudio = async (mediaRecorderRef) => {
-  await mediaRecorderRef.current.stop();
+const offRecAudio = async (mediaRecorderRef) => {
+  if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+    await mediaRecorderRef.current.stop();
+  }
 };
 
 // ==============================================================================
 
-export const onSubmitAudioFile = async (audioBlob) => {
+const onSubmitAudioFile = async (audioBlob) => {
   if (audioBlob) {
     const blobName = `${new Date().toISOString().replace(/[:.]/g, '_')}.wav`;
 
@@ -97,3 +108,7 @@ const writeString = (view, offset, string) => {
     view.setUint8(offset + i, string.charCodeAt(i));
   }
 };
+
+// ==============================================================================
+
+export {onRecAudio, offRecAudio};

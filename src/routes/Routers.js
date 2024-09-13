@@ -12,6 +12,7 @@ import FeedbackPage from '../pages/feedback/FeedbackPage.js';
 import PatientListPage from '../pages/mypage/PatientListPage.js';
 import SimulationListPage from '../pages/mypage/SimulationListPage.js';
 import PatientDetailPage from '../pages/patients/PatientDetailPage.js';
+import NotFoundPage from '../pages/error/NotFoundPage.js';
 
 
 const Routers = () => {
@@ -32,6 +33,7 @@ const Routers = () => {
         <Route path="/patients/:id" element={<SimulationListPage />} />
         <Route path="/patientsdetail" element={<PatientDetailPage />} />
         <Route path="/feedback/:simId" element={<FeedbackPage />} />
+        <Route path="/*" element={<NotFoundPage/>} />
       </Routes>
     </BrowserRouter>
   );

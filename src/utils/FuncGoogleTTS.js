@@ -1,11 +1,11 @@
 // tts api 호출 
 var audioFile = new Audio();
 
-export function ttsStop() {
+function ttsStop() {
   audioFile.pause();
 }
 
-export function ttsAPI(content, setUserMicDis) {
+function ttsAPI(content, setUserMicDis) {
   const ttsKey = process.env.REACT_APP_TTS_API_KEY;
 
   var data = {    
@@ -70,3 +70,5 @@ const base64ToBlob = (base64, fileType) => {
     type: mime
   });
 }
+
+export {ttsStop, ttsAPI};

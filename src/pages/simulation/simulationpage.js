@@ -104,6 +104,8 @@ const postMotionData = async (motions, videoUrl, simulationTime) => {
 };
 
 const SimulationPage = () => {
+  const navigate = useNavigate();
+
   const [started, setStarted] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [videoUrl, setVideoUrl] = useState(null);
@@ -111,18 +113,14 @@ const SimulationPage = () => {
   const [currentVideo, setCurrentVideo] = useState(video1);
   const [nextVideo, setNextVideo] = useState(null);
   const [transitioning, setTransitioning] = useState(false);
-
   const [isRecording, setIsRecording] = useState(false);
 
   const startTime = useRef(null); // 시뮬레이션 시작 시각
   const endTime = useRef(null); // 시뮬레이션 종료 시각 
-
-  const navigate = useNavigate();
+  const recordButton = useRef(null);
 
   const { ttsStop, fileNameList, userMicDis, setCacheId, setContent, 
-    recording, handleStartRecording, handleStopRecording } = useTxtRec();
-
-  const recordButton = useRef(null);
+  recording, handleStartRecording, handleStopRecording } = useTxtRec();
 
   useEffect(() => {
     if (recordButton.current) {
@@ -136,12 +134,18 @@ const SimulationPage = () => {
     }
   }, [userMicDis]);
 
-
   useEffect(() => {
-    if (!userMicDis) {
+    if (!userMicDis) { // 사용자 마이크가 활성화 상태일 때 (누를 수 있을 때)
       handleVideoTransition(video2);
     }
   }, [recording]);
+
+  useEffect(() => {
+    if (fileNameList && fileNameList.length > 0) {
+      console.log("[상황종료] 파일명 리스트 : ", fileNameList);
+      sendAudioFileNameListAPI(fileNameList);
+    }
+  }, [fileNameList]);
 
   const handleVideoTransition = (newVideo) => {
     if (currentVideo === newVideo) return;
@@ -173,17 +177,14 @@ const SimulationPage = () => {
   const calculateTotalTime = (start, end) => {
     const diff = new Date(end.current - start.current);
     return diff.toISOString().slice(11, 19); // HH:mm:ss 형식으로 반환
-
   };
 
   const startSimulation = async () => {
     if (started) return;
 
-
     setVideoUrl(null); // 이전 비디오 URL 초기화
     startTime.current = new Date();
     // console.log('*** startTime: ' + startTime);
-
 
     try {
       const userMediaStream = await navigator.mediaDevices.getUserMedia({
@@ -215,13 +216,8 @@ const SimulationPage = () => {
 
         try {
           const s3Url = await uploadToS3(blob);
-
           setVideoUrl(s3Url); // S3 URL로 업데이트
-
-          // 백엔드로 데이터 전송
-          await postMotionData(motions, s3Url, simulationTime);
-
-
+          await postMotionData(motions, s3Url, simulationTime); // 백엔드로 데이터 전송
         } catch (error) {
           console.error("Error uploading video to S3: ", error);
         } finally {
@@ -237,11 +233,9 @@ const SimulationPage = () => {
 
       recorder.start();
       setStarted(true);
-
       setIsRecording(true); // MotionDetection 시작
 
       // 백엔드 api 호출 : gpt와 대화하기 : gpt의 답변을 먼저 받기 위해 started==true일 때 빈 문자열을 보냄 (처음 한번만 실행)
-
       gptAPI("", null).then(newResponse => {
         setCacheId(newResponse.newCacheId);
         setContent(newResponse.newContent);
@@ -261,10 +255,6 @@ const SimulationPage = () => {
   const stopSimulation = () => {
     if (mediaRecorder && mediaRecorder.state !== "inactive") {
       ttsStop();
-      // console.log("[상황종료] 파일명 리스트 : ", fileNameList);
-      setTimeout(() => {
-        sendAudioFileNameListAPI(fileNameList);
-      }, 10000);
       mediaRecorder.stop();
       navigate('/');
     } else {

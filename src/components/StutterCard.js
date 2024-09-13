@@ -6,6 +6,7 @@ const StutterCard = ({currentResult}) => {
   const audioRef = useRef(null);
 
   return (
+    currentResult ? (
     <div className="card-body">
       <div>
         <img className='card-img' src={currentResult && currentResult.imageUrl ? currentResult.imageUrl : "https://source.unsplash.com/random"} alt="스펙트로그램 이미지" />
@@ -23,7 +24,13 @@ const StutterCard = ({currentResult}) => {
         <div className='card-sub-title'>발화 문장</div>
         <div className='card-script'>{currentResult && currentResult.word ? currentResult.word : "정보를 불러올 수 없습니다."}</div>
       </div>
-    </div>
+    </div>) : (<NullCard/>)
+  )
+}
+
+function NullCard () {
+  return (
+    <h4>분석된 말더듬 데이터가 없습니다.</h4>
   )
 }
 

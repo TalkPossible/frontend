@@ -31,41 +31,40 @@ export const TxtRecProvider = ({ children }) => {
   const handleStartRecording = () => {
     setRecording(true);
     setUserText('');
-
     onRecAudio(setFileName, mediaRecorderRef, audioChunks); // 음성 녹음 시작
     startRecording(handleResult, console.error); // azure stt
   };
 
   const handleStopRecording = async () => {
-    setRecording(false);
-    setUserMicDis(true); // 사용자 마이크 비활성화
-
-    stopRecording();  // 음성 인식 중지
-    await offRecAudio(mediaRecorderRef); // 녹음 파일 azure storage에 업로드 및 파일 이름 list화 작업 
-
     try {
-      const newRes = await gptAPI(userText, cacheId) // 백엔드 api 호출 : 1. gpt와 대화하기 호출
-      setCacheId(newRes.newCacheId);
-      setContent(newRes.newContent);
+      await stopRecording();  // 음성 인식 중지 
+
+      // stt로 인식된 사용자의 말 text가 하나라도 있을 때 -> 다음 단계(gpt턴)로 넘어감
+      if (userText && userText.length > 0) { 
+        const newRes = await gptAPI(userText, cacheId) // 백엔드 api 호출 : 1. gpt와 대화하기 호출
+        setCacheId(newRes.newCacheId);
+        setContent(newRes.newContent);
+        setUserMicDis(true); // 사용자 마이크 비활성화
+        await offRecAudio(mediaRecorderRef); // 녹음 파일 azure storage에 업로드 및 파일 이름 list화 작업
+      }
     } catch (error) {
-      console.log('Error calling gptAPI: ', error);
+      console.log('handleStopRecording: ', error);
     }
+    setRecording(false);
   };
 
   useEffect(() => {
     if (fileName && userText !== "") {
       setFileNameList((prevFileNameList) => [...prevFileNameList, fileName]);
-      // console.log("방금 음성 파일명: ", fileName);
+      console.log("방금 음성 파일명: ", fileName);
       sendNameAPI(fileName); // 백엔드 (변경된) api 호출 : 2. 음성 파일명 전송 호출
     }
   }, [fileName]);
   
   useEffect(() => { // GPT의 content가 변경되면 ttsAPI 호출
-    if (content !== "") {
-      if (content !== "" && cacheId !== null) {
-        console.log("content : ", content); 
-        ttsAPI(content, setUserMicDis);
-      };
+    if (content !== "" && cacheId !== null) {
+      console.log("content : ", content); 
+      ttsAPI(content, setUserMicDis);
     };
   }, [cacheId, content]);
 

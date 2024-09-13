@@ -266,10 +266,10 @@ const FeedbackPage = () => {
                 <StutterCard currentResult={stutterList[currentIndex]}></StutterCard>
               </div>
 
-              <div className="btn-pn" >
+              {stutterList[currentIndex] ? <div className="btn-pn" >
                 <button onClick={handlePrev}>Prev</button>
                 <button onClick={handleNext}>Next</button>
-              </div>
+              </div> : null}
             </div> : <FdMenuVoiceSkeleton/>
           }
 
@@ -279,17 +279,26 @@ const FeedbackPage = () => {
                 <div className="header-title">동작 분석</div> <button onClick={toMenuListClicked}>&times;</button>
               </div>
               
-              <div className="part-rest part-scroll ">
-                {motionList.map((motion, index) => (
-                  <p key={index} className="motion"><span>{motion.timestamp}</span> <span>{motion.motionName}</span></p>
-                ))}
-              </div>
+              
+                <div className="part-rest part-scroll ">
+                  {motionList.length > 0 ? 
+                    motionList.map((motion, index) => (
+                      <p key={index} className="motion"><span>{motion.timestamp}</span> <span>{motion.motionName}</span></p>
+                    )) : (<NoMotionComponent/>)}
+                </div>
             </div> : <FdMenuMotionSkeleton/>
           }
         </div>
 
       </div>
     </>
+  )
+}
+
+
+function NoMotionComponent () {
+  return (
+    <h4>분석된 동작 데이터가 없습니다.</h4>
   )
 }
 

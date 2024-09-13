@@ -68,12 +68,12 @@ const Header = () => {
         </div>
 
 
-        {isLoggedIn ? (
+        {isLoggedIn && userInfo ? (
         // 로그인된 경우
         <div className="group-menu">
           <div className="profile-info" onClick={toggleDropdown}>
-            <img src={userInfo ? userInfo.profileImgUrl : ""} alt="Profile Icon" className="profile-icon" />
-            <span>{userInfo ? userInfo.name : ""}님</span>
+            <img src={userInfo.profileImgUrl ? userInfo.profileImgUrl : "/logo512.png"} alt="Profile Icon" className="profile-icon" />
+            <span>{userInfo.name ? userInfo.name : ""}님</span>
             <span className="dropdown-icon">▼</span>
             {isDropdownOpen && (
             <div className="dropdown">

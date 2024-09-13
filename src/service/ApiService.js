@@ -1,12 +1,13 @@
 import { API_BASE_URL } from "../api/apiConfig.js";
 
 // 백엔드 호출
-export function call(api, method, request) {
+async function call(api, method, request) {
+  const Authorization = localStorage.getItem('accessToken');
+
   let headers = new Headers({
     "Content-Type": "application/json",
   });
 
-  const Authorization = localStorage.getItem('accessToken');
   if (Authorization && Authorization !== null) {
     headers.append("Authorization", "Bearer " + Authorization);
   }
@@ -16,23 +17,26 @@ export function call(api, method, request) {
     url: API_BASE_URL + api,
     method: method,
   };
+
   if (request) {
     options.body = JSON.stringify(request);
   }
 
-  return fetch(options.url, options).then((response) => {
-    if(response.status === 200) {
-      return response.json();
-    } else if(response.status === 401 || 403){
+  try {
+    const response = await fetch(options.url, options);
+
+    if (response.status === 200) {
+      return await response.json();
+    } else if (response.status === 403) {
       window.location.href = "/login"; // redirection
     } else {
-      Promise.reject(response);
-      throw Error(response);
+      throw new Error(`HTTP Error: ${response.status}`);
     }
-  }).catch((error) => {
-    console.log("http error");
-    console.log(error);
-  });
+  } catch (error) {
+    alert("오류 발생");
+    console.error("HTTP error:", error);
+    throw error; // Optional: rethrow the error if you want it to propagate
+  }
 }
 
 const rmvServer = (str) => {
@@ -40,115 +44,148 @@ const rmvServer = (str) => {
 };
 
 // gpt api 호출
-export function gptAPI (message, cacheId) {
-  let headers = new Headers({
-    "simulationId": localStorage.getItem('simulationId'),
-    "Authorization": `Bearer ${localStorage.getItem('accessToken')}`,
-    "Content-Type": "application/json",
-  });
+async function gptAPI(message, cacheId) {
+  try {
+    let headers = new Headers({
+      "simulationId": localStorage.getItem('simulationId'),
+      "Authorization": `Bearer ${localStorage.getItem('accessToken')}`,
+      "Content-Type": "application/json",
+    });
 
-  let body = JSON.stringify({
-    "message": message,
-    "cacheId": cacheId,
-  })
+    let body = JSON.stringify({
+      "message": message,
+      "cacheId": cacheId,
+    });
 
-  let options = {
-    url: API_BASE_URL + "/api/v1/chatGPT/remember",
-    headers,
-    method: 'POST',
-    body
-  };
+    let options = {
+      method: 'POST',
+      headers,
+      body
+    };
 
-  return fetch(options.url, options).then((response) => {
-    if(response.status === 200) {
-      return response.json();
-    } else if(response.status === 401 || 403){
+    // 확인
+    // console.log("message:", message);
+    // console.log("cacheId:", cacheId);
+
+    const response = await fetch(API_BASE_URL + "/api/v1/chatGPT/remember", options);
+
+    if (response.status === 200) {
+      const responseData = await response.json();
+
+      // 새로운 캐시 ID와 서버 응답 처리
+      const newCacheId = responseData.cacheId;
+      const newContent = rmvServer(responseData.choices[0].message.content);
+      const newResponse = { newCacheId, newContent };
+
+      return newResponse;
+    } else if (response.status === 403) {
       window.location.href = "/login";
     } else {
-      Promise.reject(response);
-      throw Error(response);
+      throw new Error(`[gptAPI] status: ${response.status}`);
     }
-  }).catch((error) => {
-    console.log("[http error]", error);
-  }).then((response) => {
-    const newCacheId = response.cacheId;
-    const newContent = rmvServer(response.choices[0].message.content);
-    const newResponse = {newCacheId, newContent};
-    return newResponse;
-  })
-  .catch((error) => {
-    console.log('[Error calling GPT API]', error);
-  });
-};
+  } catch (error) {
+    alert("오류 발생");
+    console.error("[gptAPI]", error);
+    throw error; // 오류를 다시 던져서 호출한 곳에서도 처리할 수 있게 함
+  }
+}
 
 // 사용자 대화 내용 저장 api 호출
-export function sendNameAPI (fileName) {
+async function sendNameAPI(fileName, retryCount = 3, delay = 1000) {
   let simulationId = localStorage.getItem('simulationId');
 
-  let headers = new Headers({
-    "patientId": localStorage.getItem('patientId'),
-    "Authorization": `Bearer ${localStorage.getItem('accessToken')}`,
-    "Content-Type": "application/json",
-  });
+  const makeRequest = async () => {
+    try {
+      let headers = new Headers({
+        "patientId": localStorage.getItem('patientId'),
+        "Authorization": `Bearer ${localStorage.getItem('accessToken')}`,
+        "Content-Type": "application/json",
+      });
 
-  let body = JSON.stringify({
-    "vName": fileName //"2024-08-26T19_26_41_317Z.wav"
-  })
+      let body = JSON.stringify({
+        "vName": fileName
+      });
 
-  let options = {
-    url: API_BASE_URL + `/api/v1/simulations/${simulationId}`,
-    headers,
-    method: 'POST',
-    body
+      let options = {
+        method: 'POST',
+        headers,
+        body
+      };
+
+      const response = await fetch(API_BASE_URL + `/api/v1/simulations/${simulationId}`, options);
+
+      if (response.status === 200) {
+        // console.log("sendNameAPI : ", fileName);
+        return;
+      } else if (response.status === 403) {
+        window.location.href = "/login";
+        return;
+      } else {
+        throw new Error(`[sendNameAPI] status: ${response.status}`);
+      }
+    } catch (error) {
+      if (retryCount > 0) {
+        console.warn(`Retrying... (${retryCount} attempts left)`);
+        await new Promise(resolve => setTimeout(resolve, delay)); // Delay before retry
+        await makeRequest(); // Retry the request
+      } else {
+        alert("오류 발생");
+        console.error("[sendNameAPI]", error);
+      }
+    }
   };
 
-  return fetch(options.url, options).then((response) => {
-    if(response.status === 200) {
-      // console.log("sendNameAPI : ", fileName);
-      return ;
-    } else if(response.status === 401 || 403){
-      window.location.href = "/login";
-    } else {
-      Promise.reject(response);
-      throw Error(response);
-    }
-  }).catch((error) => {
-    console.log("[http error]", error);
-  });
+  await makeRequest();
 }
 
-// 오디오 파일명 리스트 보내기 api 호출
-export function sendAudioFileNameListAPI (nameList = []) {
+
+// 오디오 파일명 리스트 보내기 api 호출 (발화속도 측정을 위함)
+async function sendAudioFileNameListAPI(nameList, retryCount = 3, delay = 1000) {
   let simulationId = localStorage.getItem('simulationId');
 
-  let headers = new Headers({
-    "simulationId": simulationId,
-    "Authorization": `Bearer ${localStorage.getItem('accessToken')}`,
-    "Content-Type": "application/json",
-  });
+  const makeRequest = async () => {
+    try {
+      let headers = new Headers({
+        "simulationId": simulationId,
+        "Authorization": `Bearer ${localStorage.getItem('accessToken')}`,
+        "Content-Type": "application/json",
+      });
 
-  let body = JSON.stringify({
-    "audioFileNameList": nameList,
-  })
+      let body = JSON.stringify({
+        "audioFileNameList": nameList,
+      });
 
-  let options = {
-    url: API_BASE_URL + `/api/v1/simulations/${simulationId}/speech-rate`,
-    headers,
-    method: 'POST',
-    body
+      let options = {
+        method: 'POST',
+        headers,
+        body
+      };
+
+      const response = await fetch(API_BASE_URL + `/api/v1/simulations/${simulationId}/speech-rate`, options);
+
+      if (response.status === 200) {
+        // console.log("[sendAudioFileNameListAPI] 오디오 파일명 리스트 보내기 성공");
+        return;
+      } else if (response.status === 403) {
+        window.location.href = "/login";
+        return;
+      } else {
+        throw new Error(`[sendAudioFileNameListAPI] status: ${response.status}`);
+      }
+    } catch (error) {
+      if (retryCount > 0) {
+        console.warn(`Retrying... (${retryCount} attempts left)`);
+        await new Promise(resolve => setTimeout(resolve, delay)); // Delay before retry
+        await makeRequest(); // Retry the request
+      } else {
+        alert("오류 발생");
+        console.error("[sendAudioFileNameListAPI]", error);
+      }
+    }
   };
 
-  return fetch(options.url, options).then((response) => {
-    if(response.status === 200) {
-      // console.log("[sendAudioFileNameListAPI] 오디오 파일명 리스트 보내기 성공");
-      return ;
-    } else if(response.status === 403){ // 401 ||
-      window.location.href = "/login";
-    } else {
-      Promise.reject(response);
-      throw Error(response);
-    }
-  }).catch((error) => {
-    console.log("[http error]", error);
-  });
+  await makeRequest();
 }
+
+
+export {call, gptAPI, sendNameAPI, sendAudioFileNameListAPI};
