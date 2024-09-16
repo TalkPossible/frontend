@@ -53,6 +53,8 @@ const MotionDetection = ({ isRecording }) => {
     }
   }, [isRecording]);
 
+
+
   // 거리 계산
   const calculateDistance = (landmark1, landmark2) => {
     return Math.sqrt(
@@ -272,7 +274,10 @@ const MotionDetection = ({ isRecording }) => {
         video.height = videoHeight;
 
         const detect = () => {
-          if (!poseLandmarker || !isRecording) return;
+          if (!poseLandmarker || !isRecording){
+            //console.log(">> PoseLandmarker: false or isRecording: false, skipping detection"); 
+            return;
+          }
 
           const startTimeMs = performance.now();
           poseLandmarker.detectForVideo(video, startTimeMs, (result) => {
@@ -280,6 +285,8 @@ const MotionDetection = ({ isRecording }) => {
             canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
 
             if (result.landmarks && result.landmarks.length > 0) {
+
+              //console.log('>> Landmarks Detected');
 
               // landmarks 배열의 값들을 landmarkNames와 매핑
               const landmarks = result.landmarks[0].map((landmark, index) => ({
@@ -301,7 +308,7 @@ const MotionDetection = ({ isRecording }) => {
               // });
               drawingUtils.drawConnectors(landmarks, PoseLandmarker.POSE_CONNECTIONS);
             } else {
-              console.log('No landmarks detected');
+              //console.log('No landmarks detected');
             }
 
             canvasCtx.restore();
@@ -316,7 +323,7 @@ const MotionDetection = ({ isRecording }) => {
       }
     };
 
-    if (poseLandmarker && videoRef.current) {
+    if (poseLandmarker && videoRef.current) { 
       const enableCam = async () => {
         const constraints = { video: true };
         const stream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -329,7 +336,7 @@ const MotionDetection = ({ isRecording }) => {
 
       enableCam();
     }
-  }, [poseLandmarker, lerp]);
+  }, [poseLandmarker, lerp, isRecording]);
 
   useEffect(() => {
     const createPoseLandmarker = async () => {
@@ -345,7 +352,7 @@ const MotionDetection = ({ isRecording }) => {
         numPoses: 1,
       });
       setPoseLandmarker(poseLandmarker);
-      console.log('PoseLandmarker created');
+      //console.log('PoseLandmarker created');
     };
 
     createPoseLandmarker();

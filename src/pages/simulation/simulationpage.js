@@ -223,9 +223,12 @@ const SimulationPage = () => {
         } finally {
           setStarted(false);
           setIsRecording(false); // Motion Detection 중지
-          if (stream) {
-            stream.getTracks().forEach(track => track.stop());
-          }
+          // if (stream) {
+          //   stream.getTracks().forEach(track => {
+          //     track.stop();
+          //     console.log(`>> ${track.kind} track stopped, readyState: ${track.readyState}`);
+          //   });
+          // }
           setMediaRecorder(null);
           setStream(null);
         }
@@ -256,6 +259,14 @@ const SimulationPage = () => {
     if (mediaRecorder && mediaRecorder.state !== "inactive") {
       ttsStop();
       mediaRecorder.stop();
+
+      if (stream) {
+        stream.getTracks().forEach(track => {
+          track.stop();
+          console.log(`>> ${track.kind} track stopped, readyState: ${track.readyState}`);
+        });
+      }
+
       navigate('/');
     } else {
       console.error("MediaRecorder is already inactive or not initialized.");
