@@ -1,8 +1,21 @@
 // tts api 호출 
 var audioFile = new Audio();
+let handleAudioEnded;
 
 function ttsStop() {
   audioFile.pause();
+
+  // 오디오 URL 리소스 해제
+  if (audioFile.src) {
+    window.URL.revokeObjectURL(audioFile.src);
+    audioFile.src = '';  // 오디오 소스 초기화
+  }
+
+  // 등록된 handleAudioEnded 리스너 해제
+  if (handleAudioEnded) {
+    audioFile.removeEventListener('ended', handleAudioEnded);
+    handleAudioEnded = null; // 해제 후 null로 설정
+  }
 }
 
 function ttsAPI(content, setUserMicDis) {
@@ -18,7 +31,7 @@ function ttsAPI(content, setUserMicDis) {
       "text": content
     },
     "audioConfig":{
-      "audioEncoding":"mp3"
+      "audioEncoding":"MP3"
     }
   };
 
@@ -39,9 +52,15 @@ function ttsAPI(content, setUserMicDis) {
     let audioBlob = base64ToBlob(res.audioContent, "mp3");
     audioFile.src = window.URL.createObjectURL(audioBlob);
     audioFile.playbackRate = 1; //재생속도
-    audioFile.addEventListener('ended', () => { // 음성이 끝난 후 이벤트 리스너 추가
-      setUserMicDis(false); // 사용자 마이크 활성화 
-    });
+
+    // 음성이 끝난 후 이벤트 리스너 추가 - 클로저로 setUserMicDis 전달
+    handleAudioEnded = () => {
+      setUserMicDis(false);  // 음성이 끝나면 마이크 활성화
+    };
+
+    // 중복 리스너 방지를 위해 이전 리스너가 있으면 제거
+    audioFile.removeEventListener('ended', handleAudioEnded);
+    audioFile.addEventListener('ended', handleAudioEnded);
 
     audioFile.play();
   })
