@@ -40,6 +40,15 @@ const onRecAudio = async (setFileName, mediaRecorderRef, audioChunks) => {
 const offRecAudio = async (mediaRecorderRef) => {
   if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
     await mediaRecorderRef.current.stop();
+
+    // 미디어 스트림의 모든 트랙을 중지
+    const stream = mediaRecorderRef.current.stream;
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+    }
+    
+    // MediaRecorder 참조를 null로 설정
+    mediaRecorderRef.current = null;
   }
 };
 
