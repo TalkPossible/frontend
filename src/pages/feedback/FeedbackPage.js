@@ -223,7 +223,10 @@ const FeedbackPage = () => {
                   </div>
                   <div className="sub-container">
                     <p className="sub-title">분당 어절수</p>
-                    <p className="sub-value">{infoUrl.wordsPerMin}어절/1분</p>
+                    <p className="sub-value"> {infoUrl.wordsPerMin ? 
+                      <span>{infoUrl.wordsPerMin}어절/1분</span> : 
+                      <span>발화속도를 측정할 수 있는 데이터가 없습니다.</span>}
+                      </p>
                   </div>
                   <div className="sub-container">
                     <p className="sub-title">모션 감지 횟수</p>
