@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { TxtRecProvider } from '../context/TxtRecContext.js';
 
 import PoseDetection from '../pages/motion/motiondetection';
+import MotionTest1 from '../pages/motion/MotionTest1.js';
+import MotionTest2 from '../pages/motion/MotionTest2.js';
 import Simulation from '../pages/simulation/simulationpage';
 import LandingPage from "../pages/landing/LandingPage.js";
 import ThemePage from "../pages/theme/ThemePage.js";
@@ -20,6 +22,8 @@ const Routers = () => {
     <BrowserRouter>
       <Routes>
         <Route path="/motiondetection" element={<PoseDetection />} />
+        <Route path="/motion-test1" element={<MotionTest1 />} />
+        <Route path="/motion-test2" element={<MotionTest2 />} />
         <Route path="/simulation" element={
           <TxtRecProvider>
             <Simulation />

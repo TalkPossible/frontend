@@ -1,8 +1,10 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { PoseLandmarker, FilesetResolver, DrawingUtils } from 'https://cdn.skypack.dev/@mediapipe/tasks-vision@0.10.0';
 
-
-const MotionDetection = ({ isRecording }) => {
+/**
+ * 은채 동작 감지 로직 테스트용
+ */
+const MotionTest1 = ({ isRecording }) => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const [poseLandmarker, setPoseLandmarker] = useState(null);
@@ -274,7 +276,7 @@ const MotionDetection = ({ isRecording }) => {
         video.height = videoHeight;
 
         const detect = () => {
-          if (!poseLandmarker || !isRecording){
+          if (!poseLandmarker) {
             //console.log(">> PoseLandmarker: false or isRecording: false, skipping detection"); 
             return;
           }
@@ -300,12 +302,12 @@ const MotionDetection = ({ isRecording }) => {
               checkTouchingFace(landmarks);
 
               // 관절 위치 그리기
-              // drawingUtils.drawLandmarks(landmarks, {
-              //   radius: (data) => {
-              //     const radius = lerp(data.from.z, -0.15, 0.1, 3, 0.5);
-              //     return radius < 0 ? 0.5 : radius;
-              //   },
-              // });
+              drawingUtils.drawLandmarks(landmarks, {
+                radius: (data) => {
+                  const radius = lerp(data.from.z, -0.15, 0.1, 3, 0.5);
+                  return radius < 0 ? 0.5 : radius;
+                },
+              });
               drawingUtils.drawConnectors(landmarks, PoseLandmarker.POSE_CONNECTIONS);
             } else {
               //console.log('No landmarks detected');
@@ -366,4 +368,4 @@ const MotionDetection = ({ isRecording }) => {
   );
 };
 
-export default MotionDetection;
+export default MotionTest1;
