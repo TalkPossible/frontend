@@ -105,6 +105,7 @@ const postMotionData = async (motions, videoUrl, simulationTime) => {
 
 const SimulationPage = () => {
   const navigate = useNavigate();
+  const situationNum = parseInt(localStorage.getItem("situationId"));
 
   const [started, setStarted] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
@@ -236,7 +237,7 @@ const SimulationPage = () => {
       setIsRecording(true); // MotionDetection 시작
 
       // 백엔드 api 호출 : gpt와 대화하기 : gpt의 답변을 먼저 받기 위해 started==true일 때 빈 문자열을 보냄 (처음 한번만 실행)
-      gptAPI("", null).then(newResponse => {
+      gptAPI("", null, situationNum).then(newResponse => {
         setCacheId(newResponse.newCacheId);
         setContent(newResponse.newContent);
       }).catch(error => {
