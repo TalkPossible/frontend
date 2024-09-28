@@ -7,6 +7,8 @@ import { ttsAPI, ttsStop } from '../utils/FuncGoogleTTS.js';
 const TxtRecContext = createContext();
 
 export const TxtRecProvider = ({ children }) => {
+  const situationNum = parseInt(localStorage.getItem("situationId"));
+
   // gpt와 대화하기 관련 상태변수
   const [cacheId, setCacheId] = useState(null); // gpt의 cacheId
   const [content, setContent] = useState(""); // gpt의 답변
@@ -41,7 +43,7 @@ export const TxtRecProvider = ({ children }) => {
 
       // stt로 인식된 사용자의 말 text가 하나라도 있을 때 -> 다음 단계(gpt턴)로 넘어감
       if (userText && userText.length > 0) { 
-        const newRes = await gptAPI(userText, cacheId) // 백엔드 api 호출 : 1. gpt와 대화하기 호출
+        const newRes = await gptAPI(userText, cacheId, situationNum) // 백엔드 api 호출 : 1. gpt와 대화하기 호출
         setCacheId(newRes.newCacheId);
         setContent(newRes.newContent);
         setUserMicDis(true); // 사용자 마이크 비활성화
