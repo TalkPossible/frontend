@@ -9,6 +9,7 @@ function EnrollModal({ onClose, onSubmit }) {
     gender: true, // true는 여성, false는 남성
     phoneNum: "",
   });
+  const [error, setError] = useState(""); // 에러 메시지 상태
 
   const handleChange = (e) => {
     const { name, value, type } = e.target;
@@ -26,7 +27,14 @@ function EnrollModal({ onClose, onSubmit }) {
   };
 
   const handleSubmit = () => {
-    onSubmit(formData);
+    // 유효성 검사: 이름 필드가 비어있으면 에러 메시지 설정
+    if (!formData.name) {
+      setError("이름을 입력해주세요.");
+      return;
+    }
+
+    setError(""); // 에러 메시지 초기화
+    onSubmit(formData); // 유효성 검사를 통과한 경우에만 부모 컴포넌트로 데이터 전달
   };
 
   return (
@@ -40,7 +48,9 @@ function EnrollModal({ onClose, onSubmit }) {
             name="name"
             value={formData.name}
             onChange={handleChange}
+            style={inputStyle}
           />
+          {error && <p style={{ color: "red" }}>{error}</p>} {/* 에러 메시지 표시 */}
         </div>
         <div>
           <label>생년월일: </label>
@@ -49,6 +59,7 @@ function EnrollModal({ onClose, onSubmit }) {
             name="birthday"
             value={formData.birthday}
             onChange={handleChange}
+            style={inputStyle}
           />
         </div>
         <div>
@@ -102,6 +113,11 @@ const modalContentStyle = {
   borderRadius: "8px",
   width: "300px",
   textAlign: "center",
+};
+
+const inputStyle = {
+  marginBottom: "10px",
+  width: "100%",
 };
 
 export default EnrollModal;
