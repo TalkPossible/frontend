@@ -5,7 +5,7 @@ import '../assets/css/Modal.css';
 
 import {API_BASE_URL} from '../api/apiConfig.js';
 
-const Modal = (props) => {
+const ThemeModal = (props) => {
   const navigate = useNavigate();
   const { open, close } = props;
 
@@ -51,4 +51,4 @@ const Modal = (props) => {
   );
 };
 
-export default Modal;
+export default ThemeModal;

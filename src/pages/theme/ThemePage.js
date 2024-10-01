@@ -3,7 +3,7 @@ import { call } from '../../service/ApiService.js';
 
 import Header from "../../components/Header.js";
 import Card from "./Card.js"
-import Modal from "../../components/Modal.js";
+import ThemeModal from "../../components/ThemeModal.js";
 import CardSkeleton from "./CardSkeleton.js";
 
 import "./ThemePage.css";
@@ -67,12 +67,12 @@ const ThemePage = () => {
       </div>
 
       {datas.length > 0 && (
-        <Modal open={modalOpen} close={closeModal} >
+        <ThemeModal open={modalOpen} close={closeModal} >
           <img className="modal-img" src={getImageUrl(datas[selected].imgUrl)} alt={datas[selected].title} />
           <div className="modal-title">{datas[selected].title}</div>
           <div className="modal-sinario">시나리오</div>
           <div className="modal-desc">{datas[selected].description}</div>
-        </Modal>
+        </ThemeModal>
       )}
 
       
