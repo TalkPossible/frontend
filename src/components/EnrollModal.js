@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 
+import PhoneInput from "./PhoneInput";
+
 function EnrollModal({ onClose, onSubmit }) {
   const [formData, setFormData] = useState({
     name: "",
@@ -13,6 +15,13 @@ function EnrollModal({ onClose, onSubmit }) {
     setFormData({
       ...formData,
       [name]: type === "radio" ? value === "true" : value, // 성별 처리
+    });
+  };
+
+  const handlePhoneChange = (value) => {
+    setFormData({
+      ...formData,
+      phoneNum: value,
     });
   };
 
@@ -66,13 +75,7 @@ function EnrollModal({ onClose, onSubmit }) {
           </label>
         </div>
         <div>
-          <label>전화번호: </label>
-          <input
-            type="tel"
-            name="phoneNum"
-            value={formData.phoneNum}
-            onChange={handleChange}
-          />
+          <PhoneInput handlePhoneChange={handlePhoneChange} />
         </div>
         <button onClick={handleSubmit}>등록</button>
         <button onClick={onClose}>취소</button>
