@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import '../assets/css/Modal.css';
+import '../assets/css/ThemeModal.css';
 
 import {API_BASE_URL} from '../api/apiConfig.js';
 
