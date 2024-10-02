@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 
+import '../assets/css/EnrollModal.css';
+
 function PhoneInput({handlePhoneChange}) {
   const [phoneNum, setPhoneNum] = useState("");
 
@@ -19,13 +21,14 @@ function PhoneInput({handlePhoneChange}) {
 
   return (
     <div>
-      <label>전화번호: </label>
+      <label className="st-block">전화번호</label>
       <input
         type="text"
         name="phoneNum"
         value={phoneNum}
         onChange={handlePhoneFormat}
         maxLength={13} // 최대 길이 제한
+        className="enroll-modal-input bg-border"
       />
     </div>
   );

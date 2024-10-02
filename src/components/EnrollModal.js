@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 
-import PhoneInput from "./PhoneInput";
+import PhoneInput from "./PhoneInput.js";
+
+import '../assets/css/EnrollModal.css';
 
 function EnrollModal({ onClose, onSubmit }) {
   const [formData, setFormData] = useState({
@@ -38,33 +40,33 @@ function EnrollModal({ onClose, onSubmit }) {
   };
 
   return (
-    <div style={modalStyle}>
-      <div style={modalContentStyle}>
+    <div className="enroll-modal">
+      <div className="enroll-modal-content">
         <h2>정보 입력</h2>
         <div>
-          <label>이름: </label>
+          <label className="st-block">이름</label>
           <input
             type="text"
             name="name"
             value={formData.name}
             onChange={handleChange}
-            style={inputStyle}
+            className="enroll-modal-input bg-border"
           />
           {error && <p style={{ color: "red" }}>{error}</p>} {/* 에러 메시지 표시 */}
         </div>
         <div>
-          <label>생년월일: </label>
+          <label className="st-block">생년월일</label>
           <input
             type="date"
             name="birthday"
             value={formData.birthday}
             onChange={handleChange}
-            style={inputStyle}
+            className="enroll-modal-input bg-border"
           />
         </div>
         <div>
-          <label>성별: </label>
-          <label>
+          <label className="st-block">성별</label>
+          <labell className="st-rlm">
             <input
               type="radio"
               name="gender"
@@ -73,8 +75,8 @@ function EnrollModal({ onClose, onSubmit }) {
               onChange={handleChange}
             />
             여성
-          </label>
-          <label>
+          </labell>
+          <label className="st-rlm">
             <input
               type="radio"
               name="gender"
@@ -88,36 +90,11 @@ function EnrollModal({ onClose, onSubmit }) {
         <div>
           <PhoneInput handlePhoneChange={handlePhoneChange} />
         </div>
-        <button onClick={handleSubmit}>등록</button>
-        <button onClick={onClose}>취소</button>
+        <button className="confirm-btn" onClick={handleSubmit}>등록</button>
+        <button className="confirm-btn" onClick={onClose}>취소</button>
       </div>
     </div>
   );
 }
-
-const modalStyle = {
-  position: "fixed",
-  top: 0,
-  left: 0,
-  width: "100%",
-  height: "100%",
-  backgroundColor: "rgba(0, 0, 0, 0.5)",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-};
-
-const modalContentStyle = {
-  backgroundColor: "white",
-  padding: "20px",
-  borderRadius: "8px",
-  width: "300px",
-  textAlign: "center",
-};
-
-const inputStyle = {
-  marginBottom: "10px",
-  width: "100%",
-};
 
 export default EnrollModal;

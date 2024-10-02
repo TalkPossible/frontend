@@ -132,7 +132,6 @@ const PatientListPage = () => {
         </div>
       )}
 
-
       {isModalOpen && <EnrollModal onClose={closeModal} onSubmit={handleSubmit} />}
     </>
   );

@@ -1,0 +1,62 @@
+.enroll-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.enroll-modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 300px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.enroll-modal-input {
+  margin-bottom: 10px;
+  width: 100%;
+  text-align: center;
+  flex-grow: 0; /* 확장 방지 */
+  width: 200px; /* 원하는 너비 설정 */
+}
+
+.confirm-btn {
+  background-color: #fff; 
+  padding: 3px 7px;
+  border: 3px solid #ffd401;
+  border-radius: 10px;
+  cursor: pointer; 
+  margin: 0 15px;
+}
+
+.confirm-btn:hover {
+  background-color: #ffd401; 
+  color: #fff;
+}
+
+.bg-gray {
+  background-color: #ddd; 
+}
+
+.bg-border {
+  border: 2px solid #ddd;
+  border-radius: 10px;
+}
+
+.st-block {
+  display: block;
+}
+
+.st-rlm {
+  margin: 0 15px;
+}
