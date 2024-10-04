@@ -168,22 +168,13 @@ const MotionDetection = ({ isRecording }) => {
     detectAction(buffers.current.touchingHeadBuffer, 'touchingHead', isTouchingHead);
   };  
 
-  // 목 만지기 동작 인식
   const checkTouchingNeck = (landmarks) => {
 
     const getLandmark = (name) => landmarks.find(l => l.name === name);
 
     const leftShoulder = getLandmark("Left Shoulder");
     const rightShoulder = getLandmark("Right Shoulder");
-
     const nose = getLandmark("Nose");
-    const mouthLeft = getLandmark("Mouth Left");
-    const mouthRight = getLandmark("Mouth Right");
-    const mouth = {
-      x: (mouthLeft.x + mouthRight.x) / 2,
-      y: (mouthLeft.y + mouthRight.y) / 2,
-      z: (mouthLeft.z + mouthRight.z) / 2
-    };
 
     const leftPinky = getLandmark("Left Pinky");
     const leftThumb = getLandmark("Left Thumb");
@@ -191,41 +182,44 @@ const MotionDetection = ({ isRecording }) => {
     const rightThumb = getLandmark("Right Thumb");
 
     const leftFinger = {
-      x : (leftPinky.x + leftThumb.x) / 2,
-      y : (leftPinky.y + leftThumb.y) / 2,
-      z : (leftPinky.z + leftThumb.z) / 2
+        x: (leftPinky.x + leftThumb.x) / 2,
+        y: (leftPinky.y + leftThumb.y) / 2,
+        z: (leftPinky.z + leftThumb.z) / 2
     };
 
     const rightFinger = {
-      x : (rightPinky.x + rightThumb.x) / 2,
-      y : (rightPinky.y + rightThumb.y) / 2,
-      z : (rightPinky.z + rightThumb.z) / 2
+        x: (rightPinky.x + rightThumb.x) / 2,
+        y: (rightPinky.y + rightThumb.y) / 2,
+        z: (rightPinky.z + rightThumb.z) / 2
     };
 
-    // 목의 상하 경계 설정
+    // 수정된 목의 상하 경계: 코와 어깨 사이의 비율을 사용
+    const neckTopY = nose.y + (leftShoulder.y - nose.y) * 0.2;  // 이 비율을 조정해서 더 정확히 설정 가능
     const neckBottomY = (leftShoulder.y + rightShoulder.y) / 2;
-    const mouthToNoseDistanceY = Math.abs(mouth.y - nose.y);
-    const neckTopY = mouth.y + 4 * mouthToNoseDistanceY;
 
-    // 목의 좌우 경계 설정
-    const neckBottomX = (leftShoulder.x + rightShoulder.x) / 2;
-    const neckLeftX = neckBottomX + (leftShoulder - rightShoulder) / 4;
-    const neckRightX = neckBottomX - (leftShoulder - rightShoulder) / 4;
+    // 수정된 좌우 경계: 어깨보다 약간 안쪽으로 설정
+    const neckLeftX = leftShoulder.x - 0.1;  // 목 폭을 약간 줄임
+    const neckRightX = rightShoulder.x + 0.1;
 
-    // // 손목이 목 범위 내에 있는지 확인
-    // const isWristInNeckRange = (wrist) => (
-    //   wrist.y >= neckTopY && wrist.y <= neckBottomY && wrist.x < leftShoulder.x && wrist.x > rightShoulder.x
-    // );
+    // 근접 허용 거리 설정
+    const NECK_TOUCH_THRESHOLD = 0.1;
 
-    // 손가락이 목 범위 내에 있는지
+    // 손가락이 목의 범위 내에 있는지 확인
     const isFingerInNeckRange = (finger) => (
-      finger.y >= neckTopY && finger.y <= neckBottomY && finger.x < leftShoulder.x && finger.x > rightShoulder.x
+        finger.y >= neckTopY && finger.y <= neckBottomY && 
+        finger.x <= neckLeftX && finger.x >= neckRightX
     );
 
-    const isTouchingNeck = isFingerInNeckRange(leftFinger) || isFingerInNeckRange(rightFinger);
-    
+    const isTouchingNeck = (
+        isFingerInNeckRange(leftFinger) || 
+        isFingerInNeckRange(rightFinger) ||
+        calculateDistance(leftFinger, {x: neckLeftX, y: neckTopY, z: 0}) < NECK_TOUCH_THRESHOLD || 
+        calculateDistance(rightFinger, {x: neckRightX, y: neckBottomY, z: 0}) < NECK_TOUCH_THRESHOLD
+    );
+
     detectAction(buffers.current.touchingNeckBuffer, 'touchingNeck', isTouchingNeck);
-  };
+};
+
 
   // 얼굴 만지기 동작 인식
   const checkTouchingFace = (landmarks) => {
