@@ -44,30 +44,40 @@ const rmvServer = (str) => {
 };
 
 // gpt api 호출
-async function gptAPI(message, cacheId) {
+async function gptAPI(message, cacheId, situationNum) {
+
+  let a;
+
+  switch (situationNum) {
+    case 1 : // restaurant
+      a = "restaurant";
+      break;
+    case 4 : // library
+      a = "library";
+      break;
+    default:
+      throw new Error("Invalid situation number");
+  }
+
+  let headers = new Headers({
+    "simulationId": localStorage.getItem('simulationId'),
+    "Authorization": `Bearer ${localStorage.getItem('accessToken')}`,
+    "Content-Type": "application/json",
+  });
+
+  let body = JSON.stringify({
+    "message": message,
+    "cacheId": cacheId,
+  });
+
+  let options = {
+    method: 'POST',
+    headers,
+    body
+  };
+
   try {
-    let headers = new Headers({
-      "simulationId": localStorage.getItem('simulationId'),
-      "Authorization": `Bearer ${localStorage.getItem('accessToken')}`,
-      "Content-Type": "application/json",
-    });
-
-    let body = JSON.stringify({
-      "message": message,
-      "cacheId": cacheId,
-    });
-
-    let options = {
-      method: 'POST',
-      headers,
-      body
-    };
-
-    // 확인
-    // console.log("message:", message);
-    // console.log("cacheId:", cacheId);
-
-    const response = await fetch(API_BASE_URL + "/api/v1/chatGPT/remember", options);
+    const response = await fetch(API_BASE_URL + `/api/v1/chatGPT/${a}`, options);
 
     if (response.status === 200) {
       const responseData = await response.json();
