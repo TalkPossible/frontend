@@ -15,7 +15,7 @@ import PatientListPage from '../pages/mypage/PatientListPage.js';
 import SimulationListPage from '../pages/mypage/SimulationListPage.js';
 import PatientDetailPage from '../pages/patients/PatientDetailPage.js';
 import NotFoundPage from '../pages/error/NotFoundPage.js';
-
+import SignUpSuccess from '../pages/auth/SignUpSuccess.js';
 
 const Routers = () => {
   return (
@@ -38,6 +38,7 @@ const Routers = () => {
         <Route path="/patientsdetail" element={<PatientDetailPage />} />
         <Route path="/feedback/:simId" element={<FeedbackPage />} />
         <Route path="/*" element={<NotFoundPage/>} />
+        <Route path="/signup-success" element={<SignUpSuccess />} />
       </Routes>
     </BrowserRouter>
   );
