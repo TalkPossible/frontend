@@ -66,7 +66,7 @@ function EnrollModal({ onClose, onSubmit }) {
         </div>
         <div>
           <label className="st-block">성별</label>
-          <labell className="st-rlm">
+          <label className="st-rlm">
             <input
               type="radio"
               name="gender"
@@ -75,7 +75,7 @@ function EnrollModal({ onClose, onSubmit }) {
               onChange={handleChange}
             />
             여성
-          </labell>
+          </label>
           <label className="st-rlm">
             <input
               type="radio"

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 import './PatientListPage.css';
 
-import { call } from '../../service/ApiService.js';
+import { call, enrollPatient } from '../../service/ApiService.js';
 import Header from '../../components/Header.js';
 import EnrollModal from '../../components/EnrollModal.js';
 
@@ -25,7 +25,7 @@ const PatientListPage = () => {
     };
 
     fetchPatients(); // 컴포넌트 마운트 시 API 호출
-  }, []);
+  }, [isModalOpen]);
 
   const handleRowClick = (patient) => {
     setSelectedPatient(patient);
@@ -52,7 +52,12 @@ const PatientListPage = () => {
   };
 
   const handleSubmit = (formData) => {
-    alert(JSON.stringify(formData, null, 2)); // alert 창에 폼 데이터 출력
+    // alert(JSON.stringify(formData, null, 2)); 
+    let name = formData.name;
+    let birthday = formData.birthday;
+    let gender = formData.gender;
+    let phoneNum = formData.phoneNum;
+    enrollPatient(name, birthday, gender, phoneNum);
     closeModal();
   };
 
