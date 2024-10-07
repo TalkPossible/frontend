@@ -5,14 +5,17 @@
 .signup-container {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  height: 100vh;
+  justify-content: flex-start;
+  min-height: 100vh;
 }
 
 header {
   background-color: #f5f5f5;
   padding: 20px;
   text-align: center;
+  height: 80px; 
+  line-height: 80px; 
+  margin-bottom: 60px;
 }
 
 footer {
@@ -22,16 +25,18 @@ footer {
 }
 
 .signup-form {
-  flex-grow: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  margin-top: 60px;
+  padding-bottom: 100px;
 }
 
 .signup-title {
   font-size: 2rem; 
   margin-bottom: 20px;
+  margin-top: 40px;
 }
 
 .signup-form label {
@@ -44,6 +49,13 @@ footer {
   padding: 8px;
   margin-top: 5px;
   width: 200px;
+  border: 1px solid #ccc; /* 회색 테두리 */
+  border-radius: 5px; 
+}
+
+.signup-form input:focus {
+  outline: none;
+  border-color: #888; /* 포커스 시 테두리 색상 */
 }
 
 .signup-form button {
@@ -62,5 +74,11 @@ footer {
 
 .signup-error {
   color: red;
+  margin-bottom: 10px;
+  margin-top: 20px;
+}
+
+.signup-success {
+  color: green;
   margin-bottom: 10px;
 }

@@ -125,10 +125,10 @@ const MotionTest1 = ({ isRecording }) => {
     if (averageBufferedStatus > threshold) {
       if (!actionStartTimes.current[actionType]) {
         actionStartTimes.current[actionType] = Date.now();
-        //console.log(`[${actionType}] 동작이 처음 감지됨! actionStartTime:`, actionStartTimes.current[actionType]);
+        //console.log([${actionType}] 동작이 처음 감지됨! actionStartTime:, actionStartTimes.current[actionType]);
       } else {
         const actionTime = calculateActionTime(actionStartTimes.current[actionType]);
-        //console.log(`[${actionType}] 동작이 연속적으로 감지됨! actionTime:`, actionTime);
+        //console.log([${actionType}] 동작이 연속적으로 감지됨! actionTime:, actionTime);
   
         if (actionTime >= duration) {
           console.log(`[${actionType}] 동작이 ${duration}초 이상 지속됨! actionTime:`, actionTime);
@@ -205,14 +205,14 @@ const MotionTest1 = ({ isRecording }) => {
     };
 
     // 목의 상하 경계 설정
-    const neckBottomY = (leftShoulder.y + rightShoulder.y) / 2;
+    const neckBottomY = ((leftShoulder.y + rightShoulder.y) / 2) -0.1; //0.1만큼 위로 이동
     const mouthToNoseDistanceY = Math.abs(mouth.y - nose.y);
-    const neckTopY = mouth.y + 4 * mouthToNoseDistanceY;
+    const neckTopY = mouth.y + 2.5 * mouthToNoseDistanceY; //4 -> 2.5
 
     // 목의 좌우 경계 설정
     const neckBottomX = (leftShoulder.x + rightShoulder.x) / 2;
-    const neckLeftX = neckBottomX + (leftShoulder - rightShoulder) / 4;
-    const neckRightX = neckBottomX - (leftShoulder - rightShoulder) / 4;
+    const neckLeftX = neckBottomX + (leftShoulder - rightShoulder) / 6;  // 1/4에서 1/6으로 변경
+    const neckRightX = neckBottomX - (leftShoulder - rightShoulder) / 6;
 
     // // 손목이 목 범위 내에 있는지 확인
     // const isWristInNeckRange = (wrist) => (
@@ -226,7 +226,7 @@ const MotionTest1 = ({ isRecording }) => {
 
     const isTouchingNeck = isFingerInNeckRange(leftFinger) || isFingerInNeckRange(rightFinger);
     
-    detectAction(buffers.current.touchingNeckBuffer, 'touchingNeck', isTouchingNeck);
+    detectAction(buffers.current.touchingNeckBuffer, 'touchingNeck', isTouchingNeck, 0.4); // 0.4로 감도 기준 낮춤
   };
 
   // 얼굴 만지기 동작 인식
@@ -368,4 +368,4 @@ const MotionTest1 = ({ isRecording }) => {
   );
 };
 
-export default MotionTest1;
+export default MotionTest1; 
