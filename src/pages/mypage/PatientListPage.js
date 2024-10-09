@@ -3,13 +3,15 @@ import { useNavigate } from 'react-router-dom';
 
 import './PatientListPage.css';
 
-import { call } from '../../service/ApiService.js';
+import { call, enrollPatient } from '../../service/ApiService.js';
 import Header from '../../components/Header.js';
+import EnrollModal from '../../components/EnrollModal.js';
 
 const PatientListPage = () => {
   const [patients, setPatients] = useState([]); // 환자 목록을 저장하는 상태
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -23,7 +25,7 @@ const PatientListPage = () => {
     };
 
     fetchPatients(); // 컴포넌트 마운트 시 API 호출
-  }, []);
+  }, [isModalOpen]);
 
   const handleRowClick = (patient) => {
     setSelectedPatient(patient);
@@ -39,6 +41,24 @@ const PatientListPage = () => {
   const handleClosePopup = () => {
     setIsPopupOpen(false);
     navigate("/theme");
+  };
+
+  const openModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+
+  const handleSubmit = (formData) => {
+    // alert(JSON.stringify(formData, null, 2)); 
+    let name = formData.name;
+    let birthday = formData.birthday;
+    let gender = formData.gender;
+    let phoneNum = formData.phoneNum;
+    enrollPatient(name, birthday, gender, phoneNum);
+    closeModal();
   };
 
   const handleSimulationListClick = () => {
@@ -67,6 +87,12 @@ const PatientListPage = () => {
               disabled={!selectedPatient} // 환자 선택 전에는 비활성화
             >
               진단 목록
+            </button>
+            <button
+              className={"action-button active"}
+              onClick={openModal}
+            >
+              환자 등록
             </button>
           </div>
         </div>
@@ -110,6 +136,8 @@ const PatientListPage = () => {
           </div>
         </div>
       )}
+
+      {isModalOpen && <EnrollModal onClose={closeModal} onSubmit={handleSubmit} />}
     </>
   );
 };

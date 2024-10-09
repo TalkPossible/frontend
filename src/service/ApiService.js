@@ -197,5 +197,46 @@ async function sendAudioFileNameListAPI(nameList, retryCount = 3, delay = 1000) 
   await makeRequest();
 }
 
+// 환자 등록 api 호출
+async function enrollPatient(name, birthday, gender, phoneNum) {
+  let headers = new Headers({
+    "Authorization": `Bearer ${localStorage.getItem('accessToken')}`,
+    "Content-Type": "application/json",
+  });
 
-export {call, gptAPI, sendNameAPI, sendAudioFileNameListAPI};
+  const makeRequest = async () => {
+    try {
+      let body = JSON.stringify({
+        "name": name, 
+        "birthday": birthday, 
+        "gender": gender, 
+        "phoneNum": phoneNum, 
+      });
+
+      let options = {
+        method: 'POST',
+        headers,
+        body
+      };
+
+      const response = await fetch(API_BASE_URL + `/api/v1/patients`, options);
+
+      if (response.status === 200) {
+        return;
+      } else if (response.status === 403) {
+        window.location.href = "/login";
+        return;
+      } else {
+        throw new Error(`[enrollPatientAPI] status: ${response.status}`);
+      }
+    } catch (error) {
+      alert("오류 발생");
+      console.error("[enrollPatientAPI]", error);
+    }
+  };
+
+  await makeRequest();
+}
+
+
+export {call, gptAPI, sendNameAPI, sendAudioFileNameListAPI, enrollPatient};
