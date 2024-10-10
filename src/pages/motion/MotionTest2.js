@@ -120,15 +120,15 @@ const MotionTest2 = ({ isRecording }) => {
       throw new Error("Buffer is undefined");
     }
     buffer.push(value ? 1 : 0);
-    if (buffer.length > 5) {
-      buffer.shift(); // 최근 5개의 값만 유지
+    if (buffer.length > 10) {
+      buffer.shift(); // 최근 10개의 값만 유지
     }
     return buffer.reduce((a, b) => a + b, 0) / buffer.length;
   };
 
   // 동작 판단 로직 (공통)
-  // -> 특정 동작이 3초이상 감지되면 세션 스토리지에 동작 감지 내역 저장 => 2초로 임시 수정
-  const detectAction = (buffer, actionType, isActionDetected, threshold = 0.5, duration = 2) => {
+  // -> 특정 동작이 3초이상 감지되면 세션 스토리지에 동작 감지 내역 저장 => 3초로 임시 수정
+  const detectAction = (buffer, actionType, isActionDetected, threshold = 0.4, duration = 3) => {
     const averageBufferedStatus = updateBuffer(buffer, isActionDetected);
   
     if (averageBufferedStatus > threshold) {
@@ -137,7 +137,7 @@ const MotionTest2 = ({ isRecording }) => {
         console.log(`[${actionType}] 동작이 처음 감지됨! actionStartTime:`, actionStartTimes.current[actionType]);
       } else {
         const actionTime = calculateActionTime(actionStartTimes.current[actionType]);
-        console.log(`[${actionType}] 동작이 연속적으로 감지됨! actionTime:`, actionTime);
+        //console.log(`[${actionType}] 동작이 연속적으로 감지됨! actionTime:`, actionTime);
   
         if (actionTime >= duration) {
           console.log(`[${actionType}] 동작이 ${duration}초 이상 지속됨! actionTime:`, actionTime);
@@ -148,7 +148,20 @@ const MotionTest2 = ({ isRecording }) => {
         }
       }
     } else {
-      actionStartTimes.current[actionType] = null;
+      //actionStartTimes.current[actionType] = null;
+      if (actionStartTimes.current[actionType]) {
+        const actionTime = calculateActionTime(actionStartTimes.current[actionType]);
+
+        if (actionTime < duration && averageBufferedStatus < threshold / 2) {
+          const timeSinceLastDetection = Date.now() - actionStartTimes.current[actionType];
+
+          // 감지 실패가 일정 시간 이상 지속되면 초기화
+          if (timeSinceLastDetection > 1000) { // 1초
+            actionStartTimes.current[actionType] = null;
+            //console.log(`[${actionType}] 동작이 중단됨: 초기화됨`);
+          }
+        }
+      }
     }
   };
 
@@ -413,6 +426,7 @@ const MotionTest2 = ({ isRecording }) => {
             checkTouchingFace(landmarks, faceOval);
             
             // 윤곽선 그리기
+            // drawingUtils.drawLandmarks(faceLandmarks, { radius: 2 });
             drawingUtils.drawConnectors(
               faceLandmarks,
               FaceLandmarker.FACE_LANDMARKS_FACE_OVAL,

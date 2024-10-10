@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { PoseLandmarker, FilesetResolver, DrawingUtils } from 'https://cdn.skypack.dev/@mediapipe/tasks-vision@0.10.0';
+import { PoseLandmarker, FaceLandmarker, FilesetResolver, DrawingUtils } from 'https://cdn.skypack.dev/@mediapipe/tasks-vision@0.10.0';
 
 
 const MotionDetection = ({ isRecording }) => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const [poseLandmarker, setPoseLandmarker] = useState(null);
+  const [faceLandmarker, setFaceLandmarker] = useState(null);
   const videoHeight = 450;
   const videoWidth = 600;
 
@@ -37,6 +38,13 @@ const MotionDetection = ({ isRecording }) => {
     "Left Shoulder", "Right Shoulder", "Left Elbow", "Right Elbow", 
     "Left Wrist", "Right Wrist",
     "Left Pinky", "Right Pinky", "Left Index", "Right Index", "Left Thumb", "Right Thumb",
+  ];
+
+  const faveOvalIndexList = [
+    10, 21, 54, 58, 67, 93, 103, 109, 127, 132,
+    136, 148, 149, 150, 152, 162, 172, 176, 234, 251,
+    284, 288, 297, 323, 332, 338, 356, 361, 365, 377, 
+    378, 379, 389, 397, 400, 454
   ];
 
   // 녹화 시작 시간 설정
@@ -109,17 +117,17 @@ const MotionDetection = ({ isRecording }) => {
       throw new Error("Buffer is undefined");
     }
     buffer.push(value ? 1 : 0);
-    if (buffer.length > 5) {
-      buffer.shift(); // 최근 5개의 값만 유지
+    if (buffer.length > 10) {
+      buffer.shift(); // 최근 10개의 값 유지
     }
     return buffer.reduce((a, b) => a + b, 0) / buffer.length;
   };
 
   // 동작 판단 로직 (공통)
   // -> 특정 동작이 3초이상 감지되면 세션 스토리지에 동작 감지 내역 저장
-  const detectAction = (buffer, actionType, isActionDetected, threshold = 0.5, duration = 3) => {
+  const detectAction = (buffer, actionType, isActionDetected, threshold = 0.4, duration = 3) => {
     const averageBufferedStatus = updateBuffer(buffer, isActionDetected);
-  
+
     if (averageBufferedStatus > threshold) {
       if (!actionStartTimes.current[actionType]) {
         actionStartTimes.current[actionType] = Date.now();
@@ -137,7 +145,20 @@ const MotionDetection = ({ isRecording }) => {
         }
       }
     } else {
-      actionStartTimes.current[actionType] = null;
+      //actionStartTimes.current[actionType] = null;
+        if (actionStartTimes.current[actionType]) {
+          const actionTime = calculateActionTime(actionStartTimes.current[actionType]);
+
+          if (actionTime < duration && averageBufferedStatus < threshold / 2) {
+            const timeSinceLastDetection = Date.now() - actionStartTimes.current[actionType];
+
+            // 감지 실패가 일정 시간 이상 지속되면 초기화
+            if (timeSinceLastDetection > 1000) { // 1초
+              actionStartTimes.current[actionType] = null;
+              //console.log(`[${actionType}] 동작이 중단됨: 초기화됨`);
+            }
+          }
+        }
     }
   };
 
@@ -165,7 +186,7 @@ const MotionDetection = ({ isRecording }) => {
 
     const isTouchingHead = isHandNearHead(leftHandFingers) || isHandNearHead(rightHandFingers);      
   
-    detectAction(buffers.current.touchingHeadBuffer, 'touchingHead', isTouchingHead);
+    detectAction(buffers.current.touchingHeadBuffer, 'touchingHead', isTouchingHead, 0.4);
   };  
 
   // 목 만지기 동작 인식
@@ -223,35 +244,107 @@ const checkTouchingNeck = (landmarks) => {
 };
 
   // 얼굴 만지기 동작 인식
-  const checkTouchingFace = (landmarks) => {
-
-    const getLandmark = (name) => landmarks.find(l => l.name === name);
+  const checkTouchingFace = (landmarks, faceOval) => {
 
     // 손가락 랜드마크
+    const getLandmark = (name) => landmarks.find(l => l.name === name);
     const leftIndex = getLandmark("Left Index");
     const rightIndex = getLandmark("Right Index");
 
-    // 얼굴 랜드마크 배열
-    const faceLandmarks = [ "Nose", "Mouth Left", "Mouth Right" ].map(getLandmark);
-
-    // 얼굴 <-> 손가락 거리 기준
-    const FACE_TOUCH_THRESHOLD = 0.3
+    // 얼굴 윤곽선 내부 또는 경계에 손가락 좌표가 있는지 확인
+    const isFingerInFaceOval = (finger) => {
+      if (!finger || !faceOval) {
+        return false;
+      }
+      return isPointInsideOrOnPolygon({ x: finger.x, y: finger.y }, faceOval);
+    };
 
     // 얼굴 만지기 동작 감지
-    const isHandInFaceRange = (finger) => {
-      return faceLandmarks.some((faceLandmark) => {
-        return calculateDistance(finger, faceLandmark) <= FACE_TOUCH_THRESHOLD;
-      });
-    };    
-
-    const isFaceTouching = isHandInFaceRange(leftIndex) || isHandInFaceRange(rightIndex);
+    const isFaceTouching = isFingerInFaceOval(leftIndex) || isFingerInFaceOval(rightIndex);
 
     detectAction(buffers.current.touchingFaceBuffer, 'touchingFace', isFaceTouching);
   };
 
+  // 다각형 내부 또는 경계에 점이 있는지 확인
+  const isPointInsideOrOnPolygon = (point, polygon) => {
+    // 1. 점이 다각형 내부에 있는지 확인
+    if (isPointInsidePolygon(point, polygon)) {
+      return true;
+    }
+
+    // 2. 점이 다각형의 변에 위치하는지 확인
+    const distanceThreshold = 0.01; //경계에서의 허용 거리
+    for (let i = 0; i < polygon.length; i++) {
+      const j = (i + 1) % polygon.length;
+      if (distanceToSegment(point, polygon[i], polygon[j]) < distanceThreshold) {
+        return true; //경계에 위치
+      }
+    }
+
+    return false;
+  };
+
+  // 다각형 내부에 점이 있는지 확인
+  const isPointInsidePolygon = (point, polygon) => {
+    let isInside = false;
+    let i = 0, j = polygon.length - 1;
+
+    // Ray-casting 알고리즘: 점에서 다각형의 모서리를 향해 레이를 쏴서 교차점의 수 세기
+    for (i, j; i < polygon.length; j = i++) {
+      if (
+        (polygon[i].y > point.y) !== (polygon[j].y > point.y) &&
+        point.x < ((polygon[j].x - polygon[i].x) * (point.y - polygon[i].y)) / (polygon[j].y - polygon[i].y) + polygon[i].x
+      ) {
+        isInside = !isInside;
+      }
+    }
+
+    return isInside;
+  };
+
+  // 점이 경계에 있는지 확인 (점과 선분 사이의 거리 계산)
+  const distanceToSegment = (point, vertex1, vertex2) => {
+    const x = point.x;
+    const y = point.y;
+    const x1 = vertex1.x;
+    const y1 = vertex1.y;
+    const x2 = vertex2.x;
+    const y2 = vertex2.y;
+
+    const A = x - x1;
+    const B = y - y1;
+    const C = x2 - x1;
+    const D = y2 - y1;
+
+    const dot = A * C + B * D;
+    const len_sq = C * C + D * D;
+    let param = -1;
+
+    if (len_sq !== 0) {
+      param = dot / len_sq;
+    }
+
+    let xx, yy;
+
+    if (param < 0) {
+      xx = x1;  
+      yy = y1;
+    } else if (param > 1) {
+      xx = x2;
+      yy = y2;
+    } else {
+      xx = x1 + param * C;
+      yy = y1 + param * D;
+    }
+
+    const dx = x - xx;
+    const dy = y - yy;
+    return Math.sqrt(dx * dx + dy * dy);
+  };
+
   useEffect(() => {
     const predictWebcam = async () => {
-      if (poseLandmarker && videoRef.current && canvasRef.current) {
+      if (poseLandmarker && faceLandmarker && videoRef.current && canvasRef.current) {
         const video = videoRef.current;
         const canvasElement = canvasRef.current;
         const canvasCtx = canvasElement.getContext('2d');
@@ -268,57 +361,80 @@ const checkTouchingNeck = (landmarks) => {
         video.width = videoWidth;
         video.height = videoHeight;
 
-        const detect = () => {
-          if (!poseLandmarker || !isRecording){
-            //console.log(">> PoseLandmarker: false or isRecording: false, skipping detection"); 
-            return;
-          }
+        let landmarks = null;
+
+        const detect = async () => {
+          // if (!poseLandmarker || !faceLandmarker) {
+          //   return;
+          // }
 
           const startTimeMs = performance.now();
-          poseLandmarker.detectForVideo(video, startTimeMs, (result) => {
-            canvasCtx.save();
-            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
 
-            if (result.landmarks && result.landmarks.length > 0) {
+          // PoseLandmarker 감지 및 그리기
+          const poseResult = await poseLandmarker.detectForVideo(video, startTimeMs);
+          //console.log('### Pose Result:', poseResult);
 
-              //console.log('>> Landmarks Detected');
+          canvasCtx.save();
+          canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
 
-              // landmarks 배열의 값들을 landmarkNames와 매핑
-              const landmarks = result.landmarks[0].map((landmark, index) => ({
-                ...landmark,
-                name: landmarkNames[index]
-              }));
+          if (poseResult.landmarks && poseResult.landmarks.length > 0) {
+            const poseLandmarks = poseResult.landmarks[0];
 
-              // 동작 인식
-              checkTouchingHead(landmarks);
-              checkTouchingNeck(landmarks);
-              checkTouchingFace(landmarks);
+            // PoseLandmarker에서 감지된 landmarks 배열을 landmarkNames와 매핑
+            landmarks = poseLandmarks.map((landmark, index) => ({
+              ...landmark,
+              name: landmarkNames[index]
+            }));
 
-              // 관절 위치 그리기
-              // drawingUtils.drawLandmarks(landmarks, {
-              //   radius: (data) => {
-              //     const radius = lerp(data.from.z, -0.15, 0.1, 3, 0.5);
-              //     return radius < 0 ? 0.5 : radius;
-              //   },
-              // });
-              drawingUtils.drawConnectors(landmarks, PoseLandmarker.POSE_CONNECTIONS);
-            } else {
-              //console.log('No landmarks detected');
-            }
+            // 동작 인식
+            checkTouchingHead(landmarks);
+            checkTouchingNeck(landmarks);
 
-            canvasCtx.restore();
-          });
+            //drawingUtils.drawConnectors(poseLandmarks, PoseLandmarker.POSE_CONNECTIONS);
+          }
+
+          canvasCtx.restore();
+
+          // FaceLandmarker 감지 및 그리기
+          const faceResult = await faceLandmarker.detectForVideo(video, startTimeMs);
+          //console.log('### Face Result:', faceResult);
+
+          let faceOval = null;
+
+          if (faceResult.faceLandmarks && faceResult.faceLandmarks.length > 0) {
+            const faceLandmarks = faceResult.faceLandmarks[0];
+
+            // 얼굴 윤곽선 좌표들 추출
+            const faceOvalLandmarks = faveOvalIndexList.map(index => faceLandmarks[index]);
+
+            // 얼굴 윤곽선 좌표들을 사용하여 다각형 경계 생성
+            faceOval = faceOvalLandmarks.map(landmark => ({
+              x: landmark.x,
+              y: landmark.y,
+            }));
+            //console.log('### faceOval 좌표:', faceOval);
+
+            // 얼굴만지기 동작인식
+            checkTouchingFace(landmarks, faceOval);
+            
+            // 윤곽선 그리기
+            // drawingUtils.drawLandmarks(faceLandmarks, { radius: 2 });
+            // drawingUtils.drawConnectors(
+            //   faceLandmarks,
+            //   FaceLandmarker.FACE_LANDMARKS_FACE_OVAL,
+            // );
+          }
 
           window.requestAnimationFrame(detect);
         };
 
         detect();
       } else {
-        console.log('PoseLandmarker or videoRef or canvasRef is not ready');
+        console.log('PoseLandmarker or FaceLandmarker or videoRef or canvasRef is not ready');
       }
     };
 
-    if (poseLandmarker && videoRef.current) { 
+    if (poseLandmarker && faceLandmarker && videoRef.current) { 
       const enableCam = async () => {
         const constraints = { video: true };
         const stream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -331,13 +447,17 @@ const checkTouchingNeck = (landmarks) => {
 
       enableCam();
     }
-  }, [poseLandmarker, lerp, isRecording]);
+  }, [poseLandmarker, faceLandmarker, lerp]);
 
   useEffect(() => {
+
     const createPoseLandmarker = async () => {
+
       const vision = await FilesetResolver.forVisionTasks(
         'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.0/wasm'
       );
+
+      // PoseLandmarker 초기화
       const poseLandmarker = await PoseLandmarker.createFromOptions(vision, {
         baseOptions: {
           modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task',
@@ -346,8 +466,20 @@ const checkTouchingNeck = (landmarks) => {
         runningMode: 'VIDEO',
         numPoses: 1,
       });
-      setPoseLandmarker(poseLandmarker);
       //console.log('PoseLandmarker created');
+
+      // FaceLandmarker 초기화
+      const faceLandmarker = await FaceLandmarker.createFromOptions(vision, {
+        baseOptions: {
+          modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',
+          delegate: 'GPU',
+        },
+        runningMode: 'VIDEO',
+        numPoses: 1
+      });
+
+      setPoseLandmarker(poseLandmarker);
+      setFaceLandmarker(faceLandmarker);
     };
 
     createPoseLandmarker();
