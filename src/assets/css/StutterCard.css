@@ -6,7 +6,7 @@
 }
 
 .card-body .card-img {
-  width: 100%;
+  width: 50%;
   border-radius: 8px;
 } 
 .card-body .card-img-desc {
@@ -21,6 +21,11 @@
   display: block;
 } 
 .card-body .card-script {
-  height: 100px;
   overflow: auto;
 } 
+
+.item-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
