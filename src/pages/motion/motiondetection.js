@@ -175,7 +175,7 @@ const MotionDetection = ({ isRecording }) => {
     const ears = ["Left Ear", "Right Ear"].map(getLandmark);
 
     // 손가락 <-> 귀 거리 기준
-    const HEAD_TOUCH_THRESHOLD = 0.3
+    const HEAD_TOUCH_THRESHOLD = 0.4
 
     // 머리 만지기 동작 감지
     const isHandNearHead = (fingers) => {
@@ -415,7 +415,11 @@ const checkTouchingNeck = (landmarks) => {
             //console.log('### faceOval 좌표:', faceOval);
 
             // 얼굴만지기 동작인식
-            checkTouchingFace(landmarks, faceOval);
+            if (landmarks && landmarks.length > 0) {
+              checkTouchingFace(landmarks, faceOval);
+            } else {
+              console.error('Landmarks are not available for face detection');
+            }
             
             // 윤곽선 그리기
             // drawingUtils.drawLandmarks(faceLandmarks, { radius: 2 });
