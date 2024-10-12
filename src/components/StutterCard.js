@@ -8,7 +8,7 @@ const StutterCard = ({currentResult}) => {
   return (
     currentResult ? (
     <div className="card-body">
-      <div>
+      <div className="item-center">
         <img className='card-img' src={currentResult && currentResult.imageUrl ? currentResult.imageUrl : "https://source.unsplash.com/random"} alt="스펙트로그램 이미지" />
         {/* <p className='card-img-desc' >(사진에 대한 설명)</p> */}
       </div>

@@ -78,6 +78,7 @@
 
 .fd-menu .sub-menu, .fd-menu .sub-info {
   margin-bottom: 24px;
+  overflow: auto;
 }
 
 .fd-menu .sub-menu .menu-box {
