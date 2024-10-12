@@ -103,18 +103,34 @@ const postMotionData = async (motions, videoUrl, simulationTime) => {
     }  
 };
 
+// 상황별 미디어 매핑
+const mediaMapping = {
+  1: { // restaurant
+    video1: video1, 
+    video2: video2, 
+    capturepic: capturepic,
+  },
+  4: { // library
+    video1: require('../../assets/images/library_say.mp4'), 
+    video2: require('../../assets/images/library_nod.mp4'), 
+    capturepic: require('../../assets/images/library_cap.jpg'), 
+  },
+};
+
 const SimulationPage = () => {
   const navigate = useNavigate();
   const situationNum = parseInt(localStorage.getItem("situationId"));
+  const situationMedia = mediaMapping[situationNum]||mediaMapping[1]; //유효하지 않은 경우
 
   const [started, setStarted] = useState(false);
   const [mediaRecorder, setMediaRecorder] = useState(null);
   const [videoUrl, setVideoUrl] = useState(null);
   const [stream, setStream] = useState(null);
-  const [currentVideo, setCurrentVideo] = useState(video1);
+  const [currentVideo, setCurrentVideo] = useState(situationMedia.video1);
   const [nextVideo, setNextVideo] = useState(null);
   const [transitioning, setTransitioning] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [backgroundImage, setBackgroundImage] = useState(situationMedia.capturepic); 
 
   const startTime = useRef(null); // 시뮬레이션 시작 시각
   const endTime = useRef(null); // 시뮬레이션 종료 시각 
@@ -137,7 +153,7 @@ const SimulationPage = () => {
 
   useEffect(() => {
     if (!userMicDis) { // 사용자 마이크가 활성화 상태일 때 (누를 수 있을 때)
-      handleVideoTransition(video2);
+      handleVideoTransition(situationMedia.video2);
     }
   }, [recording]);
 
@@ -148,11 +164,30 @@ const SimulationPage = () => {
     }
   }, [fileNameList]);
 
+  useEffect(() => {
+    // 사용자 마이크 상태에 따라 초기 비디오 설정
+    if (userMicDis) {
+      setCurrentVideo(situationMedia.video1); 
+    } else {
+      setCurrentVideo(situationMedia.video2); 
+    }
+  }, [userMicDis, situationMedia]); 
+
+    // 상황에 따라 초기 배경 이미지 설정
+    useEffect(() => {
+      console.log("Current situation:", situationNum);
+      console.log("Current media mapping:", situationMedia);
+      setBackgroundImage(situationMedia.capturepic);
+    }, [situationNum]); 
+
   const handleVideoTransition = (newVideo) => {
     if (currentVideo === newVideo) return;
 
     setTransitioning(true);
     setNextVideo(newVideo);
+    
+    // 새 비디오에 따라 배경 이미지 업데이트
+    setBackgroundImage(situationMedia.capturepic); // 현재 상황에 맞는 배경 이미지 설정
 
     // 숨겨질 비디오를 z-index로 가리기
     document.querySelectorAll('.video').forEach((video) => {
@@ -292,7 +327,7 @@ const SimulationPage = () => {
           <div className="topSection">
             <div className="video-container">
               <img
-                src={capturepic}
+                src={backgroundImage}
                 alt="background"
                 className="capturepic"
               />
@@ -345,7 +380,4 @@ const SimulationPage = () => {
   );
 }
 
-
 export default SimulationPage;
-
-
