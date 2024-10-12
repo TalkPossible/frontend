@@ -62,7 +62,7 @@ const PatientListPage = () => {
     let gender = formData.gender;
     let phoneNum = formData.phoneNum;
     enrollPatient(name, birthday, gender, phoneNum);
-    closeModal();
+    setIsModalOpen(false);
   };
 
   const handleSimulationListClick = () => {
@@ -141,7 +141,7 @@ const PatientListPage = () => {
         </div>
       )}
 
-      {isModalOpen && <EnrollModal onClose={closeModal} onSubmit={handleSubmit} />}
+      {isModalOpen && <EnrollModal onClose={closeModal} onSubmit={handleSubmit}/>}
     </>
   );
 };
