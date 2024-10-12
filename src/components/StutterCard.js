@@ -21,6 +21,11 @@ const StutterCard = ({currentResult}) => {
       </div>
 
       <div>
+        <div className='card-sub-title'>말더듬 유형</div>
+        <div className='card-script'>{currentResult && currentResult.type ? currentResult.type : "정보를 불러올 수 없습니다."}</div>
+      </div>
+
+      <div>
         <div className='card-sub-title'>발화 문장</div>
         <div className='card-script'>{currentResult && currentResult.word ? currentResult.word : "정보를 불러올 수 없습니다."}</div>
       </div>
