@@ -40,6 +40,10 @@ const PatientListPage = () => {
 
   const handleClosePopup = () => {
     setIsPopupOpen(false);
+  };
+
+  const handleStartSimul = () => {
+    setIsPopupOpen(false);
     navigate("/theme");
   };
 
@@ -131,7 +135,7 @@ const PatientListPage = () => {
               <p>ID: {selectedPatient.patientId}</p>
               <p>이름: {selectedPatient.name}</p>
               <p>생년월일: {selectedPatient.birth}</p>
-              <button className="action-button active" onClick={handleClosePopup}>시뮬레이션 시작</button>
+              <button className="action-button active" onClick={handleStartSimul}>시뮬레이션 시작</button>
             </div>
           </div>
         </div>
