@@ -59,7 +59,7 @@ const SimulationListPage = () => {
                 <th>전체 시간</th>
                 <th>분당 어절수</th>
                 <th>말더듬 횟수</th>
-                <th>추임새 사용 횟수</th>
+                {/* <th>추임새 사용 횟수</th> */}
                 <th>동작감지 횟수</th>
               </tr>
             </thead>
@@ -75,7 +75,7 @@ const SimulationListPage = () => {
                     <td>{simulation.totalTime}</td>
                     <td>{simulation.wordsPerMin}</td>
                     <td>{simulation.stutterCount}</td>
-                    <td>{simulation.type ? simulation.type : 0}</td>
+                    {/* <td>{simulation.type ? simulation.type : 0}</td> */}
                     <td>{simulation.motionCount}</td>
                   </tr>
                 )) : 
