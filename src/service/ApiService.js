@@ -56,7 +56,7 @@ async function gptAPI(message, cacheId, situationNum) {
       a = "library";
       break;
     case 5:
-      a = "reservation";
+      a = "hospital";
       break;
     case 6:
       a = "hairsalon";
