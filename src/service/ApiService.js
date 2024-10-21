@@ -55,6 +55,13 @@ async function gptAPI(message, cacheId, situationNum) {
     case 4 : // library
       a = "library";
       break;
+    case 5:
+      a = "reservation";
+      break;
+    case 6:
+      a = "hairsalon";
+      break;
+
     default:
       throw new Error("Invalid situation number");
   }
