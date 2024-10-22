@@ -229,10 +229,6 @@ const FeedbackPage = () => {
                       </p>
                   </div>
                   <div className="sub-container">
-                    <p className="sub-title">추임새 사용 횟수</p>
-                    <p className="sub-value">{infoUrl.chuCount}번</p>
-                  </div>
-                  <div className="sub-container">
                     <p className="sub-title">모션 감지 횟수</p>
                     <p className="sub-value">{infoUrl.motionCount}번</p>
                   </div>
