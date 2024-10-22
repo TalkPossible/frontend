@@ -7,6 +7,7 @@ import ThemeModal from "../../components/ThemeModal.js";
 import CardSkeleton from "./CardSkeleton.js";
 
 import "./ThemePage.css";
+import { background } from '@chakra-ui/react';
 
 const ThemePage = () => {
   const [modalOpen, setModalOpen] = useState(false);
@@ -60,9 +61,12 @@ const ThemePage = () => {
           Array(4).fill().map((_, index) => <CardSkeleton key={index} />)
         ) : (
           // 데이터가 로딩된 후 카드 표시
-          datas.map((data, index) => (
-            <Card setSelected={setSelected} setModalOpen={setModalOpen} key={index} Data={data} index={index} />
-          ))
+          <>
+            {datas.map((data, index) => (
+              <Card setSelected={setSelected} setModalOpen={setModalOpen} key={index} Data={data} index={index} />
+            ))}
+            <div className="card-comingsoon" style={{backgroundImage: `url('/images/theme/coming_soon.png')`}}>Coming Soon</div>
+          </>
         )}
       </div>
 
