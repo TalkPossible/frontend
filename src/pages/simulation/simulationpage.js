@@ -110,11 +110,23 @@ const mediaMapping = {
     video2: video2, 
     capturepic: capturepic,
   },
-  4: { // library
+  2: { // library
     video1: require('../../assets/images/library_say.mp4'), 
     video2: require('../../assets/images/library_nod.mp4'), 
     capturepic: require('../../assets/images/library_cap.jpg'), 
   },
+  3: { // hospital
+    video1: require('../../assets/images/hospital_say.mp4'), 
+    video2: require('../../assets/images/hospital_nod.mp4'), 
+    capturepic: require('../../assets/images/hospital_cap.jpg'), 
+  },
+  4: { // hairsalon
+    video1: require('../../assets/images/hair_say.mp4'), 
+    video2: require('../../assets/images/hair_nod.mp4'), 
+    capturepic: require('../../assets/images/hair_cap.jpg'), 
+  },
+
+
 };
 
 const SimulationPage = () => {
