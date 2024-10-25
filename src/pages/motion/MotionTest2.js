@@ -64,14 +64,19 @@ const MotionTest2 = ({ isRecording }) => {
     }
   }, [isRecording]);
 
-
-
   // 거리 계산
   const calculateDistance = (landmark1, landmark2) => {
     return Math.sqrt(
       Math.pow(landmark1.x - landmark2.x, 2) +
       Math.pow(landmark1.y - landmark2.y, 2) +
       Math.pow(landmark1.z - landmark2.z, 2)
+    );
+  };
+
+  const calculateDistanceBrief = (landmark1, landmark2) => {
+    return Math.sqrt(
+      Math.pow(landmark1.x - landmark2.x, 2) +
+      Math.pow(landmark1.y - landmark2.y, 2)
     );
   };
 
@@ -120,15 +125,15 @@ const MotionTest2 = ({ isRecording }) => {
       throw new Error("Buffer is undefined");
     }
     buffer.push(value ? 1 : 0);
-    if (buffer.length > 10) {
-      buffer.shift(); // 최근 10개의 값만 유지
+    if (buffer.length > 15) {
+      buffer.shift(); // 최근 15개의 값만 유지
     }
     return buffer.reduce((a, b) => a + b, 0) / buffer.length;
   };
 
   // 동작 판단 로직 (공통)
-  // -> 특정 동작이 3초이상 감지되면 세션 스토리지에 동작 감지 내역 저장 => 3초로 임시 수정
-  const detectAction = (buffer, actionType, isActionDetected, threshold = 0.4, duration = 3) => {
+  // -> 특정 동작이 3초이상 감지되면 세션 스토리지에 동작 감지 내역 저장 => 2초로 임시 수정
+  const detectAction = (buffer, actionType, isActionDetected, threshold = 0.4, duration = 2) => {
     const averageBufferedStatus = updateBuffer(buffer, isActionDetected);
   
     if (averageBufferedStatus > threshold) {
@@ -166,7 +171,7 @@ const MotionTest2 = ({ isRecording }) => {
   };
 
   // 머리 만지기 동작 인식
-  const checkTouchingHead = (landmarks) => {
+  const checkTouchingHead = (landmarks, faceOval) => {
 
     const getLandmark = (name) => landmarks.find(l => l.name === name);
 
@@ -174,32 +179,68 @@ const MotionTest2 = ({ isRecording }) => {
     const leftHandFingers = ["Left Pinky", "Left Index", "Left Thumb"].map(getLandmark);
     const rightHandFingers = ["Right Pinky", "Right Index", "Right Thumb"].map(getLandmark);
     
-    // 귀 랜드마크 배열
-    const ears = ["Left Ear", "Right Ear"].map(getLandmark);
+    // 귀 랜드마크
+    const leftEar = getLandmark("Left Ear");
+    const rightEar = getLandmark("Right Ear");
+    const earHeight = Math.min(leftEar.y, rightEar.y);
 
-    // 손가락 <-> 귀 거리 기준
-    const HEAD_TOUCH_THRESHOLD = 0.4
+    // 귀 랜드마크
+    const nose = getLandmark("Nose");
+
+    // 손 <-> 얼굴 윤곽선 거리
+    const HEAD_TOUCH_THRESHOLD = 0.5;
+
+    // 1-1. 손이 얼굴 윤곽선 외부에 있는지 확인
+    const isFingerOutFaceOval = (finger) => {
+      if (!finger || !faceOval) {
+        return false;
+      }
+      return !isPointInsideOrOnPolygon({ x: finger.x, y: finger.y }, faceOval);
+    };
+
+    // 2. 손이 얼굴 윤곽선과 일정 거리 이내에 있는지 확인
+    const isWithinThreshold = (finger) => {
+      return faceOval.some(boundaryPoint => calculateDistanceBrief(finger, boundaryPoint) < HEAD_TOUCH_THRESHOLD);
+    };
+
+    // 3. 손이 귀보다 위에 있는지 확인
+    const isAboveEars = (finger) => {
+      return finger.y < earHeight;
+    };
+
+    // 4. 머리 뒤쪽을 만지는지 확인
+    const isTouchingBackOfHead = (finger) => {
+      if (!finger || !faceOval) {
+        return false;
+      }
+      const inFingerInsideFaceOval = isPointInsideOrOnPolygon({ x: finger.x, y: finger.y }, faceOval);
+      const isHandBackOfHead = finger.z > nose.z + 0.05;
+      if(inFingerInsideFaceOval && isHandBackOfHead){
+        return true;
+      }
+      return false;
+    };
 
     // 머리 만지기 동작 감지
     const isHandNearHead = (fingers) => {
-      return fingers.some(finger =>
-        ears.some(landmark => calculateDistance(finger, landmark) < HEAD_TOUCH_THRESHOLD)
-      );
+      return fingers.some(finger => {
+        return (isFingerOutFaceOval(finger) && isWithinThreshold(finger) && isAboveEars(finger))
+          || (isTouchingBackOfHead(finger)  && isWithinThreshold(finger) && isAboveEars(finger));
+      });
     };
 
     const isTouchingHead = isHandNearHead(leftHandFingers) || isHandNearHead(rightHandFingers);      
   
-    detectAction(buffers.current.touchingHeadBuffer, 'touchingHead', isTouchingHead);
+    detectAction(buffers.current.touchingHeadBuffer, 'touchingHead', isTouchingHead, 0.4);
   };  
 
   // 목 만지기 동작 인식
   const checkTouchingNeck = (landmarks) => {
-
     const getLandmark = (name) => landmarks.find(l => l.name === name);
-
+  
     const leftShoulder = getLandmark("Left Shoulder");
     const rightShoulder = getLandmark("Right Shoulder");
-
+  
     const nose = getLandmark("Nose");
     const mouthLeft = getLandmark("Mouth Left");
     const mouthRight = getLandmark("Mouth Right");
@@ -208,49 +249,45 @@ const MotionTest2 = ({ isRecording }) => {
       y: (mouthLeft.y + mouthRight.y) / 2,
       z: (mouthLeft.z + mouthRight.z) / 2
     };
-
+  
     const leftPinky = getLandmark("Left Pinky");
     const leftThumb = getLandmark("Left Thumb");
     const rightPinky = getLandmark("Right Pinky");
     const rightThumb = getLandmark("Right Thumb");
-
+  
     const leftFinger = {
-      x : (leftPinky.x + leftThumb.x) / 2,
-      y : (leftPinky.y + leftThumb.y) / 2,
-      z : (leftPinky.z + leftThumb.z) / 2
+      x: (leftPinky.x + leftThumb.x) / 2,
+      y: (leftPinky.y + leftThumb.y) / 2,
+      z: (leftPinky.z + leftThumb.z) / 2
     };
-
+  
     const rightFinger = {
-      x : (rightPinky.x + rightThumb.x) / 2,
-      y : (rightPinky.y + rightThumb.y) / 2,
-      z : (rightPinky.z + rightThumb.z) / 2
+      x: (rightPinky.x + rightThumb.x) / 2,
+      y: (rightPinky.y + rightThumb.y) / 2,
+      z: (rightPinky.z + rightThumb.z) / 2
     };
-
+  
     // 목의 상하 경계 설정
-    const neckBottomY = (leftShoulder.y + rightShoulder.y) / 2;
+    const neckBottomY = ((leftShoulder.y + rightShoulder.y) / 2) + 0.05;  // 목 하단 경계
     const mouthToNoseDistanceY = Math.abs(mouth.y - nose.y);
-    const neckTopY = mouth.y + 4 * mouthToNoseDistanceY;
-
-    // 목의 좌우 경계 설정
-    const neckBottomX = (leftShoulder.x + rightShoulder.x) / 2;
-    const neckLeftX = neckBottomX + (leftShoulder - rightShoulder) / 4;
-    const neckRightX = neckBottomX - (leftShoulder - rightShoulder) / 4;
-
-    // // 손목이 목 범위 내에 있는지 확인
-    // const isWristInNeckRange = (wrist) => (
-    //   wrist.y >= neckTopY && wrist.y <= neckBottomY && wrist.x < leftShoulder.x && wrist.x > rightShoulder.x
-    // );
-
-    // 손가락이 목 범위 내에 있는지
+    const neckTopY = mouth.y + 1.8 * mouthToNoseDistanceY; // 목 상단 경계
+  
+    // 목의 좌우 및 측면 경계 설정
+    const neckCenterX = (leftShoulder.x + rightShoulder.x) / 2;
+    const neckLeftX = leftShoulder.x + 0.1;  // 목 왼쪽 경계를 어깨 바깥쪽으로 확장
+    const neckRightX = rightShoulder.x - 0.1; // 목 오른쪽 경계를 어깨 바깥쪽으로 확장
+  
+    // 손가락이 목 앞, 옆 범위 내에 있는지 확인
     const isFingerInNeckRange = (finger) => (
-      finger.y >= neckTopY && finger.y <= neckBottomY && finger.x < leftShoulder.x && finger.x > rightShoulder.x
+      finger.y >= neckTopY && finger.y <= neckBottomY &&
+      finger.x <= neckLeftX && finger.x >= neckRightX
     );
-
+  
     const isTouchingNeck = isFingerInNeckRange(leftFinger) || isFingerInNeckRange(rightFinger);
-    
-    detectAction(buffers.current.touchingNeckBuffer, 'touchingNeck', isTouchingNeck);
+  
+    detectAction(buffers.current.touchingNeckBuffer, 'touchingNeck', isTouchingNeck, 0.4);
   };
-
+  
   // 얼굴 만지기 동작 인식
   const checkTouchingFace = (landmarks, faceOval) => {
 
@@ -259,12 +296,22 @@ const MotionTest2 = ({ isRecording }) => {
     const leftIndex = getLandmark("Left Index");
     const rightIndex = getLandmark("Right Index");
 
-    // 얼굴 윤곽선 내부 또는 경계에 손가락 좌표가 있는지 확인
+    // 코 랜드마크
+    const nose = getLandmark("Nose");
+
+    // 얼굴 윤곽선 내부에 손가락 좌표가 있는지 확인
     const isFingerInFaceOval = (finger) => {
       if (!finger || !faceOval) {
         return false;
       }
-      return isPointInsideOrOnPolygon({ x: finger.x, y: finger.y }, faceOval);
+
+      // 얼굴 윤곽선 내부에 있는지 확인
+      const isInsideFaceOval = isPointInsideOrOnPolygon({ x: finger.x, y: finger.y }, faceOval);
+      
+      // z값 확인
+      const isInFrontOfFace = finger.z < nose.z + 0.1;
+
+      return isInsideFaceOval && isInFrontOfFace;
     };
 
     // 얼굴 만지기 동작 감지
@@ -280,14 +327,14 @@ const MotionTest2 = ({ isRecording }) => {
       return true;
     }
 
-    // 2. 점이 다각형의 변에 위치하는지 확인
-    const distanceThreshold = 0.01; //경계에서의 허용 거리
-    for (let i = 0; i < polygon.length; i++) {
-      const j = (i + 1) % polygon.length;
-      if (distanceToSegment(point, polygon[i], polygon[j]) < distanceThreshold) {
-        return true; //경계에 위치
-      }
-    }
+    // // 2. 점이 다각형의 변에 위치하는지 확인
+    // const distanceThreshold = 0.01; //경계에서의 허용 거리
+    // for (let i = 0; i < polygon.length; i++) {
+    //   const j = (i + 1) % polygon.length;
+    //   if (distanceToSegment(point, polygon[i], polygon[j]) < distanceThreshold) {
+    //     return true; //경계에 위치
+    //   }
+    // }
 
     return false;
   };
@@ -395,8 +442,8 @@ const MotionTest2 = ({ isRecording }) => {
             }));
 
             // 동작 인식
-            checkTouchingHead(landmarks);
-            //checkTouchingNeck(landmarks);
+            //checkTouchingHead(landmarks);
+            checkTouchingNeck(landmarks);
 
             drawingUtils.drawConnectors(poseLandmarks, PoseLandmarker.POSE_CONNECTIONS);
           }
@@ -425,6 +472,7 @@ const MotionTest2 = ({ isRecording }) => {
             // 얼굴만지기 동작인식
             if (landmarks && landmarks.length > 0) {
               checkTouchingFace(landmarks, faceOval);
+              checkTouchingHead(landmarks, faceOval);
             } else {
               console.error('Landmarks are not available for face detection');
             }
