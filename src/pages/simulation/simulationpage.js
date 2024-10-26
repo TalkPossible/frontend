@@ -61,7 +61,13 @@ const postMotionData = async (motions, videoUrl, simulationTime) => {
 
     const simulationId = parseInt(localStorage.getItem('simulationId'), 10);
     const patientId = parseInt(localStorage.getItem('patientId'), 10);
-    const runDate = new Date().toISOString().split('T')[0];
+    
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = (today.getMonth()+1).toString().padStart(2,'0');
+    const day = today.getDate().toString().padStart(2, '0');
+    const runDate = `${year}-${month}-${day}`;
+    
     const totalTime = simulationTime;
 
     try {
