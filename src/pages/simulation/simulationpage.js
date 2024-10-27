@@ -61,7 +61,13 @@ const postMotionData = async (motions, videoUrl, simulationTime) => {
 
     const simulationId = parseInt(localStorage.getItem('simulationId'), 10);
     const patientId = parseInt(localStorage.getItem('patientId'), 10);
-    const runDate = new Date().toISOString().split('T')[0];
+    
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = (today.getMonth()+1).toString().padStart(2,'0');
+    const day = today.getDate().toString().padStart(2, '0');
+    const runDate = `${year}-${month}-${day}`;
+    
     const totalTime = simulationTime;
 
     try {
@@ -110,17 +116,17 @@ const mediaMapping = {
     video2: video2, 
     capturepic: capturepic,
   },
-  4: { // library
+  2: { // library
     video1: require('../../assets/images/library_say.mp4'), 
     video2: require('../../assets/images/library_nod.mp4'), 
     capturepic: require('../../assets/images/library_cap.jpg'), 
   },
-  5: { // hospital
+  3: { // hospital
     video1: require('../../assets/images/hospital_say.mp4'), 
     video2: require('../../assets/images/hospital_nod.mp4'), 
     capturepic: require('../../assets/images/hospital_cap.jpg'), 
   },
-  6: { // hairsalon
+  4: { // hairsalon
     video1: require('../../assets/images/hair_say.mp4'), 
     video2: require('../../assets/images/hair_nod.mp4'), 
     capturepic: require('../../assets/images/hair_cap.jpg'), 

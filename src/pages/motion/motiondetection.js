@@ -61,14 +61,19 @@ const MotionDetection = ({ isRecording }) => {
     }
   }, [isRecording]);
 
-
-
   // 거리 계산
   const calculateDistance = (landmark1, landmark2) => {
     return Math.sqrt(
       Math.pow(landmark1.x - landmark2.x, 2) +
       Math.pow(landmark1.y - landmark2.y, 2) +
       Math.pow(landmark1.z - landmark2.z, 2)
+    );
+  };
+
+  const calculateDistanceBrief = (landmark1, landmark2) => {
+    return Math.sqrt(
+      Math.pow(landmark1.x - landmark2.x, 2) +
+      Math.pow(landmark1.y - landmark2.y, 2)
     );
   };
 
@@ -117,15 +122,15 @@ const MotionDetection = ({ isRecording }) => {
       throw new Error("Buffer is undefined");
     }
     buffer.push(value ? 1 : 0);
-    if (buffer.length > 10) {
-      buffer.shift(); // 최근 10개의 값 유지
+    if (buffer.length > 15) {
+      buffer.shift(); // 최근 15개의 값 유지
     }
     return buffer.reduce((a, b) => a + b, 0) / buffer.length;
   };
 
   // 동작 판단 로직 (공통)
-  // -> 특정 동작이 3초이상 감지되면 세션 스토리지에 동작 감지 내역 저장
-  const detectAction = (buffer, actionType, isActionDetected, threshold = 0.4, duration = 3) => {
+  // -> 특정 동작이 3초이상 감지되면 세션 스토리지에 동작 감지 내역 저장 => 2초로 수정
+  const detectAction = (buffer, actionType, isActionDetected, threshold = 0.4, duration = 2) => {
     const averageBufferedStatus = updateBuffer(buffer, isActionDetected);
 
     if (averageBufferedStatus > threshold) {
@@ -163,7 +168,7 @@ const MotionDetection = ({ isRecording }) => {
   };
 
   // 머리 만지기 동작 인식
-  const checkTouchingHead = (landmarks) => {
+  const checkTouchingHead = (landmarks, faceOval) => {
 
     const getLandmark = (name) => landmarks.find(l => l.name === name);
 
@@ -171,23 +176,60 @@ const MotionDetection = ({ isRecording }) => {
     const leftHandFingers = ["Left Pinky", "Left Index", "Left Thumb"].map(getLandmark);
     const rightHandFingers = ["Right Pinky", "Right Index", "Right Thumb"].map(getLandmark);
     
-    // 귀 랜드마크 배열
-    const ears = ["Left Ear", "Right Ear"].map(getLandmark);
+    // 귀 랜드마크
+    const leftEar = getLandmark("Left Ear");
+    const rightEar = getLandmark("Right Ear");
+    const earHeight = Math.min(leftEar.y, rightEar.y);
 
-    // 손가락 <-> 귀 거리 기준
-    const HEAD_TOUCH_THRESHOLD = 0.4
+    // 귀 랜드마크
+    const nose = getLandmark("Nose");
+
+    // 손 <-> 얼굴 윤곽선 거리
+    const HEAD_TOUCH_THRESHOLD = 0.5;
+
+    // 1-1. 손이 얼굴 윤곽선 외부에 있는지 확인
+    const isFingerOutFaceOval = (finger) => {
+      if (!finger || !faceOval) {
+        return false;
+      }
+      return !isPointInsideOrOnPolygon({ x: finger.x, y: finger.y }, faceOval);
+    };
+
+    // 2. 손이 얼굴 윤곽선과 일정 거리 이내에 있는지 확인
+    const isWithinThreshold = (finger) => {
+      return faceOval.some(boundaryPoint => calculateDistanceBrief(finger, boundaryPoint) < HEAD_TOUCH_THRESHOLD);
+    };
+
+    // 3. 손이 귀보다 위에 있는지 확인
+    const isAboveEars = (finger) => {
+      return finger.y < earHeight;
+    };
+
+    // 4. 머리 뒤쪽을 만지는지 확인
+    const isTouchingBackOfHead = (finger) => {
+      if (!finger || !faceOval) {
+        return false;
+      }
+      const inFingerInsideFaceOval = isPointInsideOrOnPolygon({ x: finger.x, y: finger.y }, faceOval);
+      const isHandBackOfHead = finger.z > nose.z + 0.05;
+      if(inFingerInsideFaceOval && isHandBackOfHead){
+        return true;
+      }
+      return false;
+    };
 
     // 머리 만지기 동작 감지
     const isHandNearHead = (fingers) => {
-      return fingers.some(finger =>
-        ears.some(landmark => calculateDistance(finger, landmark) < HEAD_TOUCH_THRESHOLD)
-      );
+      return fingers.some(finger => {
+        return (isFingerOutFaceOval(finger) && isWithinThreshold(finger) && isAboveEars(finger))
+          || (isTouchingBackOfHead(finger)  && isWithinThreshold(finger) && isAboveEars(finger));
+      });
     };
 
     const isTouchingHead = isHandNearHead(leftHandFingers) || isHandNearHead(rightHandFingers);      
   
     detectAction(buffers.current.touchingHeadBuffer, 'touchingHead', isTouchingHead, 0.4);
-  };  
+  };
 
   // 목 만지기 동작 인식
 const checkTouchingNeck = (landmarks) => {
@@ -251,12 +293,22 @@ const checkTouchingNeck = (landmarks) => {
     const leftIndex = getLandmark("Left Index");
     const rightIndex = getLandmark("Right Index");
 
-    // 얼굴 윤곽선 내부 또는 경계에 손가락 좌표가 있는지 확인
+    // 코 랜드마크
+    const nose = getLandmark("Nose");
+
+    // 얼굴 윤곽선 내부에 손가락 좌표가 있는지 확인
     const isFingerInFaceOval = (finger) => {
       if (!finger || !faceOval) {
         return false;
       }
-      return isPointInsideOrOnPolygon({ x: finger.x, y: finger.y }, faceOval);
+
+      // 얼굴 윤곽선 내부에 있는지 확인
+      const isInsideFaceOval = isPointInsideOrOnPolygon({ x: finger.x, y: finger.y }, faceOval);
+      
+      // z값 확인
+      const isInFrontOfFace = finger.z < nose.z + 0.1;
+
+      return isInsideFaceOval && isInFrontOfFace;
     };
 
     // 얼굴 만지기 동작 감지
@@ -273,13 +325,13 @@ const checkTouchingNeck = (landmarks) => {
     }
 
     // 2. 점이 다각형의 변에 위치하는지 확인
-    const distanceThreshold = 0.01; //경계에서의 허용 거리
-    for (let i = 0; i < polygon.length; i++) {
-      const j = (i + 1) % polygon.length;
-      if (distanceToSegment(point, polygon[i], polygon[j]) < distanceThreshold) {
-        return true; //경계에 위치
-      }
-    }
+    // const distanceThreshold = 0.01; //경계에서의 허용 거리
+    // for (let i = 0; i < polygon.length; i++) {
+    //   const j = (i + 1) % polygon.length;
+    //   if (distanceToSegment(point, polygon[i], polygon[j]) < distanceThreshold) {
+    //     return true; //경계에 위치
+    //   }
+    // }
 
     return false;
   };
@@ -387,7 +439,6 @@ const checkTouchingNeck = (landmarks) => {
             }));
 
             // 동작 인식
-            checkTouchingHead(landmarks);
             checkTouchingNeck(landmarks);
 
             //drawingUtils.drawConnectors(poseLandmarks, PoseLandmarker.POSE_CONNECTIONS);
@@ -417,6 +468,7 @@ const checkTouchingNeck = (landmarks) => {
             // 얼굴만지기 동작인식
             if (landmarks && landmarks.length > 0) {
               checkTouchingFace(landmarks, faceOval);
+              checkTouchingHead(landmarks, faceOval);
             } else {
               console.error('Landmarks are not available for face detection');
             }
